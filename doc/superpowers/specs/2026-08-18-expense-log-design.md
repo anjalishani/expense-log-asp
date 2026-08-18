@@ -126,7 +126,7 @@ One versioned JSON blob under key `expense-log:v1`:
 { version: 1, expenses: Expense[], limits: Limits }
 ```
 
-Seed data is written on first run only (key absent), with dates computed relative to today
+Seed data is written only when the storage key is **absent**, with dates computed relative to today
 so the app always opens on a populated month. The seed contains ten expenses in the current
 month and six in the previous month, spread across all five categories, and sets an explicit
 limit of €1,500.00 on the **current** month only. Seeded current-month spend totals
@@ -137,9 +137,15 @@ previous month has no earlier limit to inherit and shows "no limit set", while t
 inherits €1,500.00 from the current one. It also opens under budget, leaving headroom to push
 the app over the limit live during a demo.
 
-**"Clear all data" leaves the app empty, not re-seeded.** Re-seeding after an erasure action
-reads as a broken button and would contradict the erasure claim in the ADR. The key is
-removed and state resets to empty expenses and empty limits.
+**"Clear all data" leaves the app empty, not re-seeded.** Clearing writes an empty state —
+`{ version: 1, expenses: [], limits: {} }` — under the existing key. It does **not** delete
+the key.
+
+Key retention is what makes the erasure stick, and the distinction is easy to get wrong.
+Deleting the key would return the app to its first-run condition, so the next load would
+satisfy the seeding rule above and repopulate the very data the user asked to remove. The
+presence of the key is the signal that this user has been here before; its contents are what
+they chose to keep.
 
 ## 7. State and data flow
 
@@ -212,8 +218,9 @@ personal data, though not a special category under Article 9.
 analytics, no cookies, and no third-party processor. No data leaves the device.
 
 **What follows.** With no controller-held data there is no transfer, no cross-border issue,
-and nothing to breach server-side. Erasure is satisfied by "Clear all data", which removes
-the storage key outright. Portability and access are effectively satisfied by the data being
+and nothing to breach server-side. Erasure is satisfied by "Clear all data", which overwrites
+the stored record with an empty one and — critically — leaves nothing to be restored on the
+next visit. Portability and access are effectively satisfied by the data being
 on the user's own machine, though neither is an explicit feature.
 
 **What would change with a backend.** Adding server persistence or accounts would introduce a
@@ -231,6 +238,7 @@ hosting provider. This is the main reason the no-backend constraint is worth kee
 - Month filtering across month and year boundaries
 - Minor-unit parse/format round-tripping
 - Every reducer transition, including `CLEAR_ALL`
+- Clearing and then rehydrating yields empty state, never seed data
 - Schema validation against corrupt and wrong-version input
 
 **End-to-end (Playwright)** — the two tests the requirement asks for. Both seed
