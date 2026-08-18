@@ -211,8 +211,10 @@ story s31 "Set a monthly limit" must "area:budget" "$E3" \
 ### Acceptance criteria
 - [ ] Entering a limit while viewing month M stores it against M only
 - [ ] Earlier months are never rewritten
-- [ ] The limit persists across a page refresh
+- [ ] The limit survives navigating away to another month and back
 - [ ] Invalid input is rejected without clearing the existing limit
+
+Durability across a page refresh is **not** part of this story — persistence arrives in Epic 4, deliberately later in the build order. This story is complete when the limit is correct in application state.
 
 Spec §5 · Epic #$E3"
 
@@ -257,6 +259,7 @@ story s41 "Persist data to localStorage" must "area:persistence" "$E4" \
 ### Acceptance criteria
 - [ ] State saves under a versioned key on every change
 - [ ] State rehydrates on load
+- [ ] Both expenses and monthly limits persist — this is where the durability deferred from \"Set a monthly limit\" is delivered
 - [ ] \`src/storage/localStorage.ts\` is the only module touching \`localStorage\`
 
 Spec §6 · Epic #$E4"
@@ -265,11 +268,12 @@ story s42 "Seed mock data on first run" should "area:persistence" "$E4" \
 "**As a** first-time user, **I want** the app to open with example data, **so that** I can see what it does immediately.
 
 ### Acceptance criteria
-- [ ] Seeding happens only when no stored data exists
+- [ ] Seeding happens only when the storage key is **absent** — never merely because the stored state is empty
 - [ ] Dates generated relative to today, so the current month is always populated
 - [ ] Ten expenses this month across all five categories, six last month
 - [ ] Explicit €1,500.00 limit on the current month; seeded spend totals €1,180.00
 - [ ] Consequently last month shows \"no limit set\" and next month inherits €1,500.00
+- [ ] **Given** the user has cleared their data, **when** they reload, **then** nothing is re-seeded
 
 Spec §6 · Epic #$E4"
 
@@ -298,9 +302,12 @@ story s45 "Clear all data" must "area:persistence" "$E4" \
 
 ### Acceptance criteria
 - [ ] The action requires confirmation before proceeding
-- [ ] The storage key is removed outright
-- [ ] The app resets to **empty** — expenses and limits both — and does **not** re-seed
+- [ ] Clearing writes an **empty state** under the existing key — \`{ version, expenses: [], limits: {} }\` — rather than deleting the key
+- [ ] The app resets to empty: no expenses, no limits
+- [ ] **Given** cleared data, **when** the page is reloaded, **then** the app stays empty and does **not** re-seed
 - [ ] This is the concrete right-to-erasure mechanism cited in the ADR
+
+Retaining the key is what makes erasure stick. Deleting it would return the app to its first-run state, and seeding would repopulate the very data the user asked to remove.
 
 Spec §6, §10 · Epic #$E4"
 
@@ -314,6 +321,7 @@ story s51 "Unit-test the domain and reducer" must "area:quality" "$E5" \
 - [ ] Month filtering covered across month and year boundaries
 - [ ] Money parse/format round-trips
 - [ ] Every reducer action covered, including \`CLEAR_ALL\`
+- [ ] Clearing then rehydrating yields empty state, not seed data
 - [ ] Schema validation covered for corrupt and wrong-version input
 
 Spec §11 · Epic #$E5"

@@ -5,14 +5,18 @@
 **Source requirement:** `doc/requirement.md`
 
 Epic order is build order — each epic depends on the ones above it. Priorities use MoSCoW.
-Every story traces back to a spec section so the board and the design stay in step.
+
+Every epic and every story carries a traceability footer: the spec section (or requirement
+clause) it derives from, and the GitHub issue that tracks it. Section marks like §5 refer to
+the design spec above.
 
 ---
 
 ## Epic 1 — Project foundation
 
 *Goal: a checked-out repo becomes a running, testable app in under five minutes.*
-*Spec: §3*
+
+*Spec §3 · Issue #1*
 
 ### 1.1 Scaffold the application — **Must**
 
@@ -24,6 +28,8 @@ working dev server to build features against.
 - `npm run build` produces a production bundle with no TypeScript errors
 - Folder structure matches the spec's layout: `domain/`, `storage/`, `state/`, `components/`
 
+*Spec §3, §4 · Issue #6*
+
 ### 1.2 Wire up unit testing — **Must**
 
 **As a** developer, **I want** Vitest configured, **so that** domain logic can be tested
@@ -32,6 +38,8 @@ without a browser.
 - `npm run test` runs the suite and reports pass/fail
 - A single test file can be run in isolation
 - Tests in `domain/` execute without any DOM environment
+
+*Spec §3, §11 · Issue #7*
 
 ### 1.3 Wire up end-to-end testing — **Must**
 
@@ -42,6 +50,8 @@ journeys can be verified in a real browser.
 - A single test runs via `npx playwright test <file> -g "<title>"`
 - Tests can seed `localStorage` through `addInitScript` before page load
 
+*Spec §3, §11 · Issue #8*
+
 ### 1.4 Write the README — **Must**
 
 **As a** newcomer, **I want** setup instructions that work first time, **so that** I can run
@@ -50,6 +60,8 @@ the app in under five minutes.
 - Prerequisites state Node 20+
 - Install, run, build, and both test commands are listed and verified accurate
 - States what the app does and that data stays in the browser
+
+*Requirement: "README that gets someone running the app in under 5 minutes" · Issue #9*
 
 ### 1.5 Configure Claude Code settings — **Must**
 
@@ -60,12 +72,15 @@ permissions are intentional rather than default.
 - Common safe commands are pre-allowed to reduce prompt friction
 - The user/project/local hierarchy can be explained on demand
 
+*Requirement: "Settings — settings.json set up on purpose" · Issue #10*
+
 ---
 
 ## Epic 2 — Expense capture and month view
 
 *Goal: record expenses and see them a month at a time, broken down by category.*
-*Spec: §4, §5, §7*
+
+*Spec §4, §5, §7 · Issue #2*
 
 ### 2.1 Domain foundations — **Must**
 
@@ -76,6 +91,8 @@ logic is testable in isolation.
 - Amounts held as integer minor units; parse and format round-trip correctly
 - `money.ts` rejects unparseable input
 - Nothing in `domain/` imports React, storage, or browser APIs
+
+*Spec §4, §5 · Issue #11*
 
 ### 2.2 Add an expense — **Must**
 
@@ -89,6 +106,8 @@ my spending is captured.
 - An invalid or missing date is rejected inline
 - Submit is blocked while any field is invalid
 
+*Spec §5, §7, §8 · Issue #12*
+
 ### 2.3 View a month's expenses — **Must**
 
 **As a** user, **I want** to see the selected month's expenses newest first, **so that** I can
@@ -98,6 +117,8 @@ review recent spending.
 - Ordering is newest first, stable for equal dates
 - An empty month shows an empty state, not a blank panel
 - Month membership is derived by string slice, never `Date` parsing
+
+*Spec §5, §7 · Issue #13*
 
 ### 2.4 Navigate between months — **Must**
 
@@ -109,6 +130,8 @@ spending over time.
 - The list, category totals, and budget summary all follow the selected month
 - Crossing a year boundary works in both directions
 
+*Spec §7 · Issue #14*
+
 ### 2.5 See totals per category — **Must**
 
 **As a** user, **I want** per-category totals for the month, **so that** I can see where my
@@ -118,12 +141,15 @@ money went.
 - Totals are computed at render from the expense list, never stored
 - The sum of category totals equals the displayed month total
 
+*Spec §7 · Issue #15*
+
 ---
 
 ## Epic 3 — Budget limit and warning
 
 *Goal: the rule from the brief — set a limit, see what's left, get warned when it's passed.*
-*Spec: §5 (carry-forward), §7*
+
+*Spec §5 (carry-forward), §7 · Issue #3*
 
 ### 3.1 Set a monthly limit — **Must**
 
@@ -132,8 +158,14 @@ track against.
 
 - Entering a limit while viewing month M stores it against M only
 - Earlier months are never rewritten
-- The limit persists across a page refresh
+- The limit survives navigating away to another month and back
 - Invalid input is rejected without clearing the existing limit
+
+Durability across a page refresh is **not** part of this story — persistence arrives in 4.1,
+which is deliberately later in the build order. This story is complete when the limit is
+correct in application state.
+
+*Spec §5 · Issue #16*
 
 ### 3.2 Resolve the limit for an unset month — **Must**
 
@@ -146,6 +178,8 @@ track against.
 - With no earlier limit anywhere, the month shows "no limit set" and never warns
 - An unset month never defaults to zero
 
+*Spec §5 (carry-forward rule) · Issue #17*
+
 ### 3.3 See remaining budget — **Must**
 
 **As a** user, **I want** to see how much of my limit is left, **so that** I know where I
@@ -155,6 +189,8 @@ stand.
 - It updates immediately when an expense is added
 - It recalculates when the selected month changes
 - When no limit is resolved, a "no limit set" message replaces the figure
+
+*Spec §5, §7 · Issue #18*
 
 ### 3.4 Warn when the limit is passed — **Must**
 
@@ -167,12 +203,15 @@ overspent.
 - **Given** spend one minor unit above the limit, **then** the warning appears
 - The warning carries `role="alert"` and a stable `data-testid`
 
+*Spec §7, §11 · Issue #19*
+
 ---
 
 ## Epic 4 — Persistence and privacy
 
 *Goal: data survives a refresh, never crashes the app, and can be erased on demand.*
-*Spec: §6, §8, §10*
+
+*Spec §6, §8, §10 · Issue #4*
 
 ### 4.1 Persist data locally — **Must**
 
@@ -181,18 +220,26 @@ usable beyond one sitting.
 
 - State saves to `localStorage` under a versioned key on every change
 - State rehydrates on load
+- Both expenses and monthly limits persist — this is where 3.1's durability is delivered
 - `src/storage/localStorage.ts` is the only module touching `localStorage`
+
+*Spec §6 · Issue #20*
 
 ### 4.2 Seed mock data on first run — **Should**
 
 **As a** first-time user, **I want** the app to open with example data, **so that** I can see
 what it does immediately.
 
-- Seeding happens only when no stored data exists
+- Seeding happens only when the storage key is **absent** — never merely because the stored
+  state is empty
 - Dates are generated relative to today, so the current month is always populated
 - Ten expenses this month across all five categories, six last month
 - An explicit €1,500.00 limit on the current month; seeded spend totals €1,180.00
 - Consequently last month shows "no limit set" and next month inherits €1,500.00
+- **Given** the user has cleared their data, **when** they reload, **then** nothing is
+  re-seeded (see 4.5)
+
+*Spec §6 · Issue #21*
 
 ### 4.3 Survive corrupt stored data — **Should**
 
@@ -203,6 +250,8 @@ shows a blank screen.
 - Invalid data falls back to seed data instead of throwing
 - A dismissible notice explains that saved data could not be read
 
+*Spec §8 · Issue #22*
+
 ### 4.4 Work without storage — **Could**
 
 **As a** user in private browsing, **I want** the app to still work, **so that** disabled
@@ -212,21 +261,32 @@ storage isn't a dead end.
 - A banner states that changes will not persist
 - All features remain usable for the session
 
+*Spec §8 · Issue #23*
+
 ### 4.5 Clear all data — **Must**
 
 **As a** user, **I want** to erase everything I've recorded, **so that** I control my own data.
 
 - The action requires confirmation before proceeding
-- The storage key is removed outright
-- The app resets to **empty** — expenses and limits both — and does **not** re-seed
+- Clearing writes an **empty state** under the existing key — `{ version, expenses: [],
+  limits: {} }` — rather than deleting the key
+- The app resets to empty: no expenses, no limits
+- **Given** cleared data, **when** the page is reloaded, **then** the app stays empty and does
+  **not** re-seed
 - This is the concrete right-to-erasure mechanism cited in the ADR
+
+Retaining the key is what makes erasure stick. Deleting it would return the app to its
+first-run state, and 4.2 would repopulate the very data the user asked to remove.
+
+*Spec §6, §10 · Issue #24*
 
 ---
 
 ## Epic 5 — Quality and delivery
 
 *Goal: the assessed artifacts — tests, PR workflow, decision record, session log.*
-*Spec: §11; requirement Thursday section*
+
+*Spec §11; requirement Thursday section · Issue #5*
 
 ### 5.1 Unit-test the domain and reducer — **Must**
 
@@ -238,7 +298,10 @@ provably correct.
 - Month filtering covered across month and year boundaries
 - Money parse/format round-trips
 - Every reducer action covered, including `CLEAR_ALL`
+- Clearing then rehydrating yields empty state, not seed data
 - Schema validation covered for corrupt and wrong-version input
+
+*Spec §11 · Issue #25*
 
 ### 5.2 End-to-end: add an expense — **Must**
 
@@ -251,6 +314,8 @@ verified in a browser.
 - Asserts month total, its category total, and remaining budget each moved by exactly that
   amount
 
+*Spec §11 · Issue #26*
+
 ### 5.3 End-to-end: the limit boundary — **Must**
 
 **As a** reviewer, **I want** a test of the edge case, **so that** the warning's threshold is
@@ -260,6 +325,8 @@ pinned down.
 - Adds the expense bringing spend to exactly the limit: remaining reads zero, no warning
 - Adds one more minor unit: the warning appears
 - The off-by-one intent is documented in the test title
+
+*Spec §11 · Issue #27*
 
 ### 5.4 Ship a change through a reviewed PR — **Must**
 
@@ -271,6 +338,8 @@ pinned down.
 - At least one review comment is acted on, with the follow-up commit visible in the PR
 - Outside contributions are disabled on the public repo
 
+*Requirement: Thursday demo, PR workflow · Issue #28*
+
 ### 5.5 Record the decisions — **Must**
 
 **As a** reviewer, **I want** an ADR, **so that** I can see what was decided and what was
@@ -281,6 +350,8 @@ rejected.
 - Covers what personal data the app touches and what GDPR would require
 - Notes what would change if a backend were introduced
 
+*Spec §9, §10 · Issue #29*
+
 ### 5.6 Export the session log — **Must**
 
 **As a** reviewer, **I want** the working session exported, **so that** the process is
@@ -289,6 +360,8 @@ inspectable.
 - Exported with the AI Hub script (AI-SDLC Documents > Session-Export)
 - Committed into the repo
 - Lands via a PR like everything else
+
+*Requirement: Thursday demo, session log · Issue #30*
 
 ---
 
