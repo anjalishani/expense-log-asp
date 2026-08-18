@@ -1,0 +1,2 @@
+Pure TypeScript: types, money helpers, expense selectors, budget rules.
+Imports nothing from React, storage, or the browser. See CLAUDE.md.
