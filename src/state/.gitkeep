@@ -1,0 +1,2 @@
+Pure reducer plus the React context that hydrates from storage and
+persists on change.

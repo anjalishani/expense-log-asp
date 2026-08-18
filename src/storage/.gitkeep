@@ -1,0 +1,2 @@
+The only code permitted to touch window.localStorage: load, save, clear,
+schema validation, and seed data. See CLAUDE.md.
