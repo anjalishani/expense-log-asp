@@ -2,7 +2,7 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-**Last updated:** 2026-08-19 — after the backlog landed (PR #31), before any application code exists.
+**Last updated:** 2026-08-19 — after the app scaffold landed (PR #33, story #6).
 Keep this current as the project moves; a stale CLAUDE.md is worse than none.
 
 ## What this project is
@@ -28,21 +28,37 @@ instructions.
 
 ## Current state
 
-No application code yet. The repo holds the brief, the design spec, the backlog, and the
-script that seeded the GitHub issues.
+The app is scaffolded and runs, but has no features: `App.tsx` renders a placeholder. The
+`src/domain/`, `src/storage/`, `src/state/`, and `src/components/` folders exist and are
+empty apart from a note describing what belongs in each.
+
+Not yet wired: **Vitest** (story #7) and **Playwright** (story #8). There is no test command
+until those land — don't assume one exists.
 
 Work is tracked as **GitHub issues**, not Jira: issues #1–#5 are the epics, #6–#30 the
 stories, linked as native sub-issues. Every story in `doc/backlog.md` carries its issue
 number — keep the two in step when either changes.
 
-## Stack
+## Stack and commands
 
-React + TypeScript on Vite, Vitest for unit tests, Playwright for end-to-end, `localStorage`
-for persistence, Node 20+. Chosen over Blazor WASM and ASP.NET MVC despite the `-asp` in the
-repo name; the reasoning is in spec §9.
+React 19 + TypeScript 5.9 on Vite 7, Vitest for unit tests, Playwright for end-to-end,
+`localStorage` for persistence. Chosen over Blazor WASM and ASP.NET MVC despite the `-asp` in
+the repo name; the reasoning is in spec §9.
 
-**Commands are not yet real** — nothing is scaffolded. Once story #6 lands, replace this line
-with the verified install / dev / build / test commands, including how to run a single test.
+```bash
+npm install      # requires Node ^20.19.0 || >=22.12.0 — Vite 7's floor, not just "Node 20"
+npm run dev      # dev server on http://localhost:5173 (strictPort: fails if busy, never drifts)
+npm run build    # tsc -b && vite build
+npm run typecheck
+```
+
+TypeScript uses project references: `tsconfig.app.json` covers `src/` with DOM libs,
+`tsconfig.node.json` covers `vite.config.ts` with Node types. Config files and app code have
+genuinely different environments; don't collapse them back into one tsconfig.
+
+Strictness is above the Vite default — `noUncheckedIndexedAccess` and
+`exactOptionalPropertyTypes` are on, because `Limits` is a `Record<MonthKey, number>` indexed
+by month key and a missing month must not silently read as `undefined`.
 
 ## Domain rules that are easy to get wrong
 
