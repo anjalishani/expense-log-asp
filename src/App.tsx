@@ -6,7 +6,7 @@ import { ExpenseList } from './components/ExpenseList'
 import { MonthNavigator } from './components/MonthNavigator'
 import { reducer, type ExpenseState } from './state/reducer'
 import { currentMonthKey } from './state/currentMonth'
-import { expensesInMonth } from './domain/expenses'
+import { expensesInMonth, monthTotal } from './domain/expenses'
 import { resolveLimit } from './domain/limits'
 import type { Expense, MonthKey } from './domain/types'
 
@@ -41,6 +41,7 @@ export default function App() {
       <BudgetSummary
         key={state.selectedMonth}
         limit={resolveLimit(state.limits, state.selectedMonth)}
+        spent={monthTotal(monthExpenses)}
         onSetLimit={handleSetLimit}
       />
     </main>

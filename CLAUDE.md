@@ -3,8 +3,8 @@
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 **Last updated:** 2026-08-19 — after month navigation (story #14), Playwright (PR #41,
-story #8), per-category totals (story #15), setting a monthly limit (story #16), and
-carry-forward limit resolution (story #17) landed.
+story #8), per-category totals (story #15), setting a monthly limit (story #16), carry-forward
+limit resolution (story #17), and the remaining-budget display (story #18) landed.
 Keep this current as the project moves; a stale CLAUDE.md is worse than none.
 
 ## What this project is
@@ -30,7 +30,7 @@ instructions.
 
 ## Current state
 
-Stories #11–#17 have landed: `domain/types.ts` and `domain/money.ts` (parse/format of integer
+Stories #11–#18 have landed: `domain/types.ts` and `domain/money.ts` (parse/format of integer
 minor units), the `state/reducer.ts` `ADD_EXPENSE`/`SELECT_MONTH`/`SET_LIMIT` actions,
 `ExpenseForm` + `ExpenseList` + `MonthNavigator` + `CategoryTotals` + `BudgetSummary` wired
 into `App.tsx` behind `useReducer`, `domain/expenses.ts` (`expensesInMonth`, `categoryTotals`)
@@ -49,6 +49,15 @@ only; it does not touch the month it was inherited from. `BudgetSummary` is moun
 `key={selectedMonth}` so it remounts (and re-syncs its input from the resolved limit) on every
 month change, rather than tracking the prop with a `useEffect`. The remaining-budget display
 (#18) and the over-limit warning (#19) don't exist yet — the rest of epic 3.
+
+`BudgetSummary`'s remaining-budget figure (story #18, `data-testid="remaining"`) is
+`resolvedLimit - monthTotal(monthExpenses)`, recomputed at render — never stored — from a new
+`domain/expenses.ts` `monthTotal()` helper (also now used by `CategoryTotals`, replacing its
+own inline reduce over category rows). When no limit resolves, `BudgetSummary` shows "No limit
+set." instead of a remaining figure, and the `remaining` test id is absent entirely rather than
+showing a placeholder — this is deliberate: a month with no limit must never warn (spec §5), so
+there's nothing meaningful to render as "remaining." The over-limit warning (#19) doesn't exist
+yet — the last piece of epic 3.
 
 `BudgetSummary` also commits a valid value on blur, not only on explicit submit — `ADD_EXPENSE`
 can auto-switch `selectedMonth` (see above), which remounts `BudgetSummary` and would otherwise

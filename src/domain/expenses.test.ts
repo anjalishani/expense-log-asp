@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { categoryTotals, expensesInMonth } from './expenses'
+import { categoryTotals, expensesInMonth, monthTotal } from './expenses'
 import { expense } from '../test/fixtures'
 
 describe('expensesInMonth', () => {
@@ -82,5 +82,32 @@ describe('categoryTotals', () => {
 
   it('returns an empty array when there are no expenses', () => {
     expect(categoryTotals([])).toEqual([])
+  })
+})
+
+describe('monthTotal', () => {
+  it('sums all expense amounts', () => {
+    const result = monthTotal([
+      expense({ category: 'Groceries', amount: 100 }),
+      expense({ category: 'Transport', amount: 250 }),
+    ])
+
+    expect(result).toBe(350)
+  })
+
+  it('equals the sum of categoryTotals', () => {
+    const expenses = [
+      expense({ category: 'Groceries', amount: 100 }),
+      expense({ category: 'Groceries', amount: 250 }),
+      expense({ category: 'Transport', amount: 500 }),
+    ]
+
+    const sumOfCategories = categoryTotals(expenses).reduce((sum, row) => sum + row.total, 0)
+
+    expect(monthTotal(expenses)).toBe(sumOfCategories)
+  })
+
+  it('returns zero for an empty list', () => {
+    expect(monthTotal([])).toBe(0)
   })
 })

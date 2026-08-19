@@ -4,10 +4,11 @@ import { formatMinorUnits } from '../domain/money'
 
 type Props = {
   limit: number | undefined
+  spent: number
   onSetLimit: (amount: number) => void
 }
 
-export function BudgetSummary({ limit, onSetLimit }: Props) {
+export function BudgetSummary({ limit, spent, onSetLimit }: Props) {
   const { value, setValue, result, error } = useAmountInput(
     limit === undefined ? '' : formatMinorUnits(limit),
   )
@@ -48,6 +49,11 @@ export function BudgetSummary({ limit, onSetLimit }: Props) {
       <button type="submit" disabled={!result.ok}>
         Set limit
       </button>
+      {limit === undefined ? (
+        <p>No limit set.</p>
+      ) : (
+        <p data-testid="remaining">Remaining: {formatMinorUnits(limit - spent)}</p>
+      )}
     </form>
   )
 }

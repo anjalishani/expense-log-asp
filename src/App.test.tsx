@@ -167,4 +167,23 @@ describe('App', () => {
     await user.click(screen.getByRole('button', { name: 'Previous' }))
     expect(screen.getByLabelText('Monthly limit')).toHaveValue('')
   })
+
+  it('shows remaining budget that updates by exactly the added amount', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+    const today = todayIsoDate()
+
+    await user.type(screen.getByLabelText('Monthly limit'), '150')
+    await user.click(screen.getByRole('button', { name: 'Set limit' }))
+    expect(screen.getByTestId('remaining')).toHaveTextContent('150.00')
+
+    await addExpense(user, today, '20.00', 'Groceries')
+    expect(screen.getByTestId('remaining')).toHaveTextContent('130.00')
+  })
+
+  it('shows "no limit set" instead of a remaining figure when nothing resolves', () => {
+    render(<App />)
+    expect(screen.getByText('No limit set.')).toBeInTheDocument()
+    expect(screen.queryByTestId('remaining')).not.toBeInTheDocument()
+  })
 })

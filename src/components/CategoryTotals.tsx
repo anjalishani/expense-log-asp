@@ -1,4 +1,4 @@
-import { categoryTotals } from '../domain/expenses'
+import { categoryTotals, monthTotal } from '../domain/expenses'
 import { formatMinorUnits } from '../domain/money'
 import type { Expense } from '../domain/types'
 
@@ -13,8 +13,6 @@ export function CategoryTotals({ expenses }: Props) {
     return <p>No spending this month.</p>
   }
 
-  const monthTotal = totals.reduce((sum, row) => sum + row.total, 0)
-
   return (
     <>
       <ul aria-label="Category totals">
@@ -25,7 +23,7 @@ export function CategoryTotals({ expenses }: Props) {
           </li>
         ))}
       </ul>
-      <p data-testid="month-total">Total: {formatMinorUnits(monthTotal)}</p>
+      <p data-testid="month-total">Total: {formatMinorUnits(monthTotal(expenses))}</p>
     </>
   )
 }
