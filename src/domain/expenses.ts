@@ -31,3 +31,7 @@ export function categoryTotals(expenses: Expense[]): CategoryTotal[] {
 
   return [...known, ...unknown]
 }
+
+export function monthTotal(expenses: Expense[]): number {
+  return expenses.reduce((sum, expense) => sum + expense.amount, 0)
+}
