@@ -1,4 +1,4 @@
-import type { Limits, MonthKey } from './types'
+import type { BudgetStatus, Limits, MonthKey } from './types'
 
 export function resolveLimit(limits: Limits, month: MonthKey): number | undefined {
   const explicit = limits[month]
@@ -9,4 +9,9 @@ export function resolveLimit(limits: Limits, month: MonthKey): number | undefine
 
   const nearest = earlierMonths.reduce((latest, key) => (key > latest ? key : latest))
   return limits[nearest]
+}
+
+export function budgetStatus(limit: number | undefined, spent: number): BudgetStatus {
+  if (limit === undefined) return 'no-limit'
+  return spent > limit ? 'over' : 'under'
 }
