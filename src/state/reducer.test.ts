@@ -11,39 +11,71 @@ const expense: Expense = {
 
 describe('reducer', () => {
   it('appends an expense to an empty state', () => {
-    const initial: ExpenseState = { expenses: [], selectedMonth: '2026-08' }
+    const initial: ExpenseState = { expenses: [], selectedMonth: '2026-08', limits: {} }
     const next = reducer(initial, { type: 'ADD_EXPENSE', expense })
     expect(next.expenses).toEqual([expense])
   })
 
   it('appends an expense without discarding existing ones', () => {
     const other: Expense = { ...expense, id: '2', category: 'Rent' }
-    const initial: ExpenseState = { expenses: [other], selectedMonth: '2026-08' }
+    const initial: ExpenseState = { expenses: [other], selectedMonth: '2026-08', limits: {} }
     const next = reducer(initial, { type: 'ADD_EXPENSE', expense })
     expect(next.expenses).toEqual([other, expense])
   })
 
   it('does not mutate the previous state', () => {
-    const initial: ExpenseState = { expenses: [], selectedMonth: '2026-08' }
+    const initial: ExpenseState = { expenses: [], selectedMonth: '2026-08', limits: {} }
     reducer(initial, { type: 'ADD_EXPENSE', expense })
     expect(initial.expenses).toEqual([])
   })
 
   it('switches the selected month to the added expense\'s month', () => {
-    const initial: ExpenseState = { expenses: [], selectedMonth: '2026-01' }
+    const initial: ExpenseState = { expenses: [], selectedMonth: '2026-01', limits: {} }
     const next = reducer(initial, { type: 'ADD_EXPENSE', expense })
     expect(next.selectedMonth).toBe('2026-08')
   })
 
   it('keeps the selected month unchanged when the expense is already in it', () => {
-    const initial: ExpenseState = { expenses: [], selectedMonth: '2026-08' }
+    const initial: ExpenseState = { expenses: [], selectedMonth: '2026-08', limits: {} }
     const next = reducer(initial, { type: 'ADD_EXPENSE', expense })
     expect(next.selectedMonth).toBe('2026-08')
   })
 
   it('changes the selected month', () => {
-    const initial: ExpenseState = { expenses: [], selectedMonth: '2026-08' }
+    const initial: ExpenseState = { expenses: [], selectedMonth: '2026-08', limits: {} }
     const next = reducer(initial, { type: 'SELECT_MONTH', month: '2026-09' })
     expect(next.selectedMonth).toBe('2026-09')
+  })
+
+  it('stores a limit against the given month', () => {
+    const initial: ExpenseState = { expenses: [], selectedMonth: '2026-08', limits: {} }
+    const next = reducer(initial, { type: 'SET_LIMIT', month: '2026-08', amount: 150000 })
+    expect(next.limits).toEqual({ '2026-08': 150000 })
+  })
+
+  it('does not rewrite an earlier month\'s limit', () => {
+    const initial: ExpenseState = {
+      expenses: [],
+      selectedMonth: '2026-08',
+      limits: { '2026-07': 100000 },
+    }
+    const next = reducer(initial, { type: 'SET_LIMIT', month: '2026-08', amount: 150000 })
+    expect(next.limits).toEqual({ '2026-07': 100000, '2026-08': 150000 })
+  })
+
+  it('overwrites an existing limit for the same month', () => {
+    const initial: ExpenseState = {
+      expenses: [],
+      selectedMonth: '2026-08',
+      limits: { '2026-08': 100000 },
+    }
+    const next = reducer(initial, { type: 'SET_LIMIT', month: '2026-08', amount: 150000 })
+    expect(next.limits).toEqual({ '2026-08': 150000 })
+  })
+
+  it('does not mutate the previous state when setting a limit', () => {
+    const initial: ExpenseState = { expenses: [], selectedMonth: '2026-08', limits: {} }
+    reducer(initial, { type: 'SET_LIMIT', month: '2026-08', amount: 150000 })
+    expect(initial.limits).toEqual({})
   })
 })

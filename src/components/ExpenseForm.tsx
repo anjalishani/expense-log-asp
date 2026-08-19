@@ -1,5 +1,5 @@
 import { useId, useState } from 'react'
-import { parseAmountToMinorUnits } from '../domain/money'
+import { useAmountInput } from './useAmountInput'
 import { CATEGORIES, type Category, type Expense } from '../domain/types'
 
 type Props = {
@@ -9,14 +9,13 @@ type Props = {
 export function ExpenseForm({ onAdd }: Props) {
   const [date, setDate] = useState('')
   const [dateTouched, setDateTouched] = useState(false)
-  const [amount, setAmount] = useState('')
+  const { value: amount, setValue: setAmount, result: amountResult, error: amountError } =
+    useAmountInput()
   const [category, setCategory] = useState<Category | ''>('')
   const dateId = useId()
   const amountId = useId()
   const categoryId = useId()
 
-  const amountResult = parseAmountToMinorUnits(amount)
-  const amountError = amount !== '' && !amountResult.ok ? amountResult.error : null
   const dateError = dateTouched && date === '' ? 'Date is required' : null
   const isValid = amountResult.ok && date !== '' && category !== ''
 

@@ -3,7 +3,7 @@
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 **Last updated:** 2026-08-19 — after month navigation (story #14), Playwright (PR #41,
-story #8), and per-category totals (story #15) landed.
+story #8), per-category totals (story #15), and setting a monthly limit (story #16) landed.
 Keep this current as the project moves; a stale CLAUDE.md is worse than none.
 
 ## What this project is
@@ -29,16 +29,28 @@ instructions.
 
 ## Current state
 
-Stories #11–#15 have landed: `domain/types.ts` and `domain/money.ts` (parse/format of integer
-minor units), the `state/reducer.ts` `ADD_EXPENSE`/`SELECT_MONTH` actions, `ExpenseForm` +
-`ExpenseList` + `MonthNavigator` + `CategoryTotals` wired into `App.tsx` behind `useReducer`,
-`domain/expenses.ts` (`expensesInMonth`, `categoryTotals`) filtering/sorting the list and
-summing per-category spend for the selected month, and `domain/month.ts`
-(`nextMonth`/`previousMonth`) for unbounded month navigation across year boundaries.
-`state/currentMonth.ts` only supplies the initial `selectedMonth` when the reducer is created;
-navigation itself is reducer state now, not a fresh clock read on every render. State is
-in-memory only — persistence is epic 4, not built yet. The budget summary (epic 3) doesn't
-exist yet. `src/storage/` is still empty.
+Stories #11–#16 have landed: `domain/types.ts` and `domain/money.ts` (parse/format of integer
+minor units), the `state/reducer.ts` `ADD_EXPENSE`/`SELECT_MONTH`/`SET_LIMIT` actions,
+`ExpenseForm` + `ExpenseList` + `MonthNavigator` + `CategoryTotals` + `BudgetSummary` wired
+into `App.tsx` behind `useReducer`, `domain/expenses.ts` (`expensesInMonth`, `categoryTotals`)
+filtering/sorting the list and summing per-category spend for the selected month, and
+`domain/month.ts` (`nextMonth`/`previousMonth`) for unbounded month navigation across year
+boundaries. `state/currentMonth.ts` only supplies the initial `selectedMonth` when the reducer
+is created; navigation itself is reducer state now, not a fresh clock read on every render.
+State is in-memory only — persistence is epic 4, not built yet. `src/storage/` is still empty.
+
+`BudgetSummary` (story #16) only sets an **explicit** limit for the exact viewed month —
+`state.limits[state.selectedMonth]`, no carry-forward yet. It's mounted with `key={selectedMonth}`
+so it remounts (and re-syncs its input from the resolved limit) on every month change, rather
+than tracking the prop with a `useEffect`. Carry-forward resolution (#17), the remaining-budget
+display (#18), and the over-limit warning (#19) don't exist yet — the rest of epic 3.
+
+`BudgetSummary` also commits a valid value on blur, not only on explicit submit — `ADD_EXPENSE`
+can auto-switch `selectedMonth` (see above), which remounts `BudgetSummary` and would otherwise
+silently discard an unsubmitted edit (PR #43 review). A `lastCommitted` ref stops that from
+double-firing `onSetLimit` when a button click blurs the field and then triggers its own submit.
+The amount-parse/error/disabled-submit logic shared by `BudgetSummary` and `ExpenseForm` lives
+in `components/useAmountInput.ts`.
 
 Both `ExpenseList` and `CategoryTotals` render an `<ul>`, disambiguated for tests via
 `aria-label` (`"Expenses"` and `"Category totals"`) — plain `getByRole('list')` is ambiguous

@@ -1,4 +1,5 @@
 import { useReducer } from 'react'
+import { BudgetSummary } from './components/BudgetSummary'
 import { CategoryTotals } from './components/CategoryTotals'
 import { ExpenseForm } from './components/ExpenseForm'
 import { ExpenseList } from './components/ExpenseList'
@@ -9,7 +10,7 @@ import { expensesInMonth } from './domain/expenses'
 import type { Expense, MonthKey } from './domain/types'
 
 function createInitialState(): ExpenseState {
-  return { expenses: [], selectedMonth: currentMonthKey() }
+  return { expenses: [], selectedMonth: currentMonthKey(), limits: {} }
 }
 
 export default function App() {
@@ -23,6 +24,10 @@ export default function App() {
     dispatch({ type: 'SELECT_MONTH', month })
   }
 
+  function handleSetLimit(amount: number) {
+    dispatch({ type: 'SET_LIMIT', month: state.selectedMonth, amount })
+  }
+
   const monthExpenses = expensesInMonth(state.expenses, state.selectedMonth)
 
   return (
@@ -32,6 +37,11 @@ export default function App() {
       <ExpenseForm onAdd={handleAdd} />
       <ExpenseList expenses={monthExpenses} />
       <CategoryTotals expenses={monthExpenses} />
+      <BudgetSummary
+        key={state.selectedMonth}
+        limit={state.limits[state.selectedMonth]}
+        onSetLimit={handleSetLimit}
+      />
     </main>
   )
 }
