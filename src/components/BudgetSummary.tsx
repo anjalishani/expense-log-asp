@@ -54,6 +54,11 @@ export function BudgetSummary({ limit, spent, onSetLimit }: Props) {
       ) : (
         <p data-testid="remaining">Remaining: {formatMinorUnits(limit - spent)}</p>
       )}
+      {limit !== undefined && spent > limit && (
+        <p role="alert" data-testid="over-limit-warning">
+          You've gone over your monthly limit.
+        </p>
+      )}
     </form>
   )
 }

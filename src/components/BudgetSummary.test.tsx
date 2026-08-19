@@ -137,4 +137,25 @@ describe('BudgetSummary', () => {
     expect(screen.getByText('No limit set.')).toBeInTheDocument()
     expect(screen.queryByTestId('remaining')).not.toBeInTheDocument()
   })
+
+  it('shows no warning when spend is below the limit', () => {
+    render(<BudgetSummary limit={150000} onSetLimit={vi.fn()} spent={100000} />)
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+  })
+
+  it('shows no warning when spend exactly equals the limit — passed means over, not reached', () => {
+    render(<BudgetSummary limit={150000} onSetLimit={vi.fn()} spent={150000} />)
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+  })
+
+  it('shows a warning once spend exceeds the limit by a single minor unit', () => {
+    render(<BudgetSummary limit={150000} onSetLimit={vi.fn()} spent={150001} />)
+    const warning = screen.getByTestId('over-limit-warning')
+    expect(warning).toHaveAttribute('role', 'alert')
+  })
+
+  it('shows no warning when there is no resolved limit, regardless of spend', () => {
+    render(<BudgetSummary limit={undefined} onSetLimit={vi.fn()} spent={999999} />)
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+  })
 })

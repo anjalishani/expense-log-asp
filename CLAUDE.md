@@ -4,8 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **Last updated:** 2026-08-19 — after month navigation (story #14), Playwright (PR #41,
 story #8), per-category totals (story #15), setting a monthly limit (story #16), carry-forward
-limit resolution (story #17), and the remaining-budget display (story #18) landed.
-Keep this current as the project moves; a stale CLAUDE.md is worse than none.
+limit resolution (story #17), the remaining-budget display (story #18), the over-limit warning
+(story #19, closing epic 3), and the add-expense/budget-boundary Playwright suites (stories
+#26–#27) landed. Keep this current as the project moves; a stale CLAUDE.md is worse than none.
 
 ## What this project is
 
@@ -55,8 +56,13 @@ month change, rather than tracking the prop with a `useEffect`.
 own inline reduce over category rows). When no limit resolves, `BudgetSummary` shows "No limit
 set." instead of a remaining figure, and the `remaining` test id is absent entirely rather than
 showing a placeholder — this is deliberate: a month with no limit must never warn (spec §5), so
-there's nothing meaningful to render as "remaining." The over-limit warning (#19) doesn't exist
-yet — the last piece of epic 3.
+there's nothing meaningful to render as "remaining."
+
+The over-limit warning (story #19, closing epic 3) is a `<p role="alert" data-testid=
+"over-limit-warning">` rendered only when `limit !== undefined && spent > limit` — strictly
+greater, so spend exactly at the limit shows zero remaining and no warning ("passed means over,
+not reached"). It's computed inline in `BudgetSummary`, not a separate helper: there's no logic
+beyond the one comparison already needed for the `remaining` figure.
 
 `BudgetSummary` also commits a valid value on blur, not only on explicit submit — `ADD_EXPENSE`
 can auto-switch `selectedMonth` (see above), which remounts `BudgetSummary` and would otherwise
@@ -76,8 +82,17 @@ calls for (spec §7). Shared test fixtures (the `expense()` builder) live in
 **Vitest is wired** (`npm run test`, jsdom + React Testing Library, config in
 `vitest.config.ts` / `src/test/setup.ts`). **Playwright is wired** (`npm run test:e2e`,
 config in `playwright.config.ts`, specs in `e2e/`) — its `webServer` starts the Vite dev
-server automatically. Only a harness smoke test exists so far; the add-expense (#26) and
-budget-limit boundary (#27) acceptance suites haven't been written yet.
+server automatically.
+
+Besides the harness smoke test, `e2e/add-expense.spec.ts` (#26) and
+`e2e/budget-limit-boundary.spec.ts` (#27) are written. Both deviate from their backlog wording
+in one deliberate way: the acceptance criteria call for seeding `localStorage` via
+`addInitScript`, but `src/storage/` is still empty (persistence is epic 4, not built), so there
+is nothing yet that reads seeded storage back. Setup instead goes through the real UI — filling
+the form, setting the limit — and `page.clock.setFixedTime()` pins "today" so the tests don't
+depend on the real date. `e2e/helpers.ts` holds the shared `addExpense`/`setMonthlyLimit`
+steps. Note `getByLabel('Category')` is ambiguous once `CategoryTotals`' `aria-label="Category
+totals"` list exists — the helper uses `getByRole('combobox', { name: 'Category' })` instead.
 
 Work is tracked as **GitHub issues**, not Jira: issues #1–#5 are the epics, #6–#30 the
 stories, linked as native sub-issues. Every story in `doc/backlog.md` carries its issue
