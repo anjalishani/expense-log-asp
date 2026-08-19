@@ -186,4 +186,33 @@ describe('App', () => {
     expect(screen.getByText('No limit set.')).toBeInTheDocument()
     expect(screen.queryByTestId('remaining')).not.toBeInTheDocument()
   })
+
+  it('recalculates remaining for each month\'s own spend when navigating, not the previous month\'s', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+    const thisMonth = currentMonthKey()
+    const thisMonthDate = `${thisMonth}-10`
+    const followingMonth = nextMonth(thisMonth)
+    const followingMonthDate = `${followingMonth}-10`
+
+    // A limit set once carries forward, so both months resolve to the same 100.00.
+    await user.type(screen.getByLabelText('Monthly limit'), '100')
+    await user.click(screen.getByRole('button', { name: 'Set limit' }))
+
+    await addExpense(user, thisMonthDate, '30.00', 'Groceries')
+    expect(screen.getByTestId('remaining')).toHaveTextContent('70.00')
+
+    await user.click(screen.getByRole('button', { name: 'Next' }))
+    // The following month has no spend of its own yet: remaining must reflect
+    // its own (carried-forward) limit, not the previous month's spend.
+    expect(screen.getByTestId('remaining')).toHaveTextContent('100.00')
+
+    await addExpense(user, followingMonthDate, '40.00', 'Transport')
+    expect(screen.getByTestId('remaining')).toHaveTextContent('60.00')
+
+    await user.click(screen.getByRole('button', { name: 'Previous' }))
+    // Back on the original month, remaining must reflect its own spend again,
+    // not the following month's.
+    expect(screen.getByTestId('remaining')).toHaveTextContent('70.00')
+  })
 })

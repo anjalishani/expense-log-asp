@@ -47,8 +47,7 @@ displayed/pre-filled value comes from `domain/limits.ts`'s `resolveLimit(limits,
 Editing and submitting a carried-forward value writes a new explicit entry for the viewed month
 only; it does not touch the month it was inherited from. `BudgetSummary` is mounted with
 `key={selectedMonth}` so it remounts (and re-syncs its input from the resolved limit) on every
-month change, rather than tracking the prop with a `useEffect`. The remaining-budget display
-(#18) and the over-limit warning (#19) don't exist yet — the rest of epic 3.
+month change, rather than tracking the prop with a `useEffect`.
 
 `BudgetSummary`'s remaining-budget figure (story #18, `data-testid="remaining"`) is
 `resolvedLimit - monthTotal(monthExpenses)`, recomputed at render — never stored — from a new
