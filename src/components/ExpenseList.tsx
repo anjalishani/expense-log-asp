@@ -11,7 +11,7 @@ export function ExpenseList({ expenses }: Props) {
   }
 
   return (
-    <ul>
+    <ul aria-label="Expenses">
       {expenses.map((expense) => (
         <li key={expense.id}>
           <span>{expense.date}</span>

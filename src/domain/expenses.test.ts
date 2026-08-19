@@ -1,16 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { expensesInMonth } from './expenses'
-import type { Expense } from './types'
-
-function expense(overrides: Partial<Expense>): Expense {
-  return {
-    id: '1',
-    date: '2026-08-01',
-    amount: 100,
-    category: 'Groceries',
-    ...overrides,
-  }
-}
+import { categoryTotals, expensesInMonth } from './expenses'
+import { expense } from '../test/fixtures'
 
 describe('expensesInMonth', () => {
   it('excludes expenses from other months', () => {
@@ -57,5 +47,40 @@ describe('expensesInMonth', () => {
     const result = expensesInMonth([outOfMonth], '2026-08')
 
     expect(result).toEqual([])
+  })
+})
+
+describe('categoryTotals', () => {
+  it('sums amounts per category', () => {
+    const result = categoryTotals([
+      expense({ category: 'Groceries', amount: 100 }),
+      expense({ category: 'Groceries', amount: 250 }),
+      expense({ category: 'Transport', amount: 500 }),
+    ])
+
+    expect(result).toEqual([
+      { category: 'Groceries', total: 350 },
+      { category: 'Transport', total: 500 },
+    ])
+  })
+
+  it('omits categories with no expenses', () => {
+    const result = categoryTotals([expense({ category: 'Rent', amount: 1000 })])
+
+    expect(result).toEqual([{ category: 'Rent', total: 1000 }])
+  })
+
+  it('orders rows by the fixed category order regardless of input order', () => {
+    const result = categoryTotals([
+      expense({ category: 'Other', amount: 10 }),
+      expense({ category: 'Groceries', amount: 20 }),
+      expense({ category: 'Rent', amount: 30 }),
+    ])
+
+    expect(result.map((row) => row.category)).toEqual(['Groceries', 'Rent', 'Other'])
+  })
+
+  it('returns an empty array when there are no expenses', () => {
+    expect(categoryTotals([])).toEqual([])
   })
 })
