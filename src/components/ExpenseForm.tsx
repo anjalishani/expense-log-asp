@@ -32,6 +32,7 @@ export function ExpenseForm({ onAdd }: Props) {
     })
 
     setDate('')
+    setDateTouched(false)
     setAmount('')
     setCategory('')
   }

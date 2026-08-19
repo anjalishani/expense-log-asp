@@ -28,6 +28,7 @@ describe('ExpenseForm', () => {
     )
     expect(screen.getByLabelText('Amount')).toHaveValue('')
     expect(screen.getByLabelText('Date')).toHaveValue('')
+    expect(screen.queryByText('Date is required')).not.toBeInTheDocument()
   })
 
   it('rejects a zero amount inline and blocks submit', async () => {
