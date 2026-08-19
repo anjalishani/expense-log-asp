@@ -44,10 +44,14 @@ using 5173 and try again.
 | `npm run typecheck` | Typecheck only (`tsc -b`) |
 | `npm run preview` | Serve the built `dist/` locally |
 | `npm run test` | Run unit and component tests (Vitest + jsdom) |
+| `npm run test:e2e` | Run end-to-end tests in a real browser (Playwright) |
 
-There is **no end-to-end test command yet.** Playwright arrives with issue
-[#8](https://github.com/anjalishani/expense-log-asp/issues/8); this table gets a row when it
-lands.
+`npm run test:e2e` starts the dev server itself (`webServer` in `playwright.config.ts`) and
+waits for it to come up, so there's nothing to start by hand first — though it'll reuse an
+already-running `npm run dev` on port 5173 if you have one open. Run a single test with
+`npx playwright test <file> -g "<title>"`. The suite lives in `e2e/`; the only spec so far
+is a harness smoke test — it doesn't cover the add-expense or budget-limit journeys, which
+are separate backlog stories.
 
 ## How it's built
 
