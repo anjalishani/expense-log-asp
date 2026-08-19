@@ -14,8 +14,12 @@ export function BudgetSummary({ limit, onSetLimit }: Props) {
   const limitId = useId()
   // Both a blur and the resulting submit can fire for one button click
   // (focus leaves the input before the click handler runs); track the last
-  // committed amount so that sequence doesn't call onSetLimit twice.
-  const lastCommitted = useRef(limit)
+  // amount committed *by this component* so that sequence doesn't call
+  // onSetLimit twice. Seeding this with the initial `limit` prop instead of
+  // `undefined` was a bug (PR #44 review): it made submitting a pre-filled
+  // carry-forward value, unedited, a silent no-op, since it looked identical
+  // to an already-committed value.
+  const lastCommitted = useRef<number | undefined>(undefined)
 
   function commit() {
     if (!result.ok || result.minorUnits === lastCommitted.current) return
