@@ -104,4 +104,19 @@ describe('App', () => {
     // The month total must equal the sum of the category totals shown above.
     expect(screen.getByTestId('month-total')).toHaveTextContent('35.50')
   })
+
+  it('stores a limit against the viewed month only, surviving navigation away and back', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+
+    await user.type(screen.getByLabelText('Monthly limit'), '1500')
+    await user.click(screen.getByRole('button', { name: 'Set limit' }))
+
+    // A different month must not inherit or see this month's explicit limit.
+    await user.click(screen.getByRole('button', { name: 'Next' }))
+    expect(screen.getByLabelText('Monthly limit')).toHaveValue('')
+
+    await user.click(screen.getByRole('button', { name: 'Previous' }))
+    expect(screen.getByLabelText('Monthly limit')).toHaveValue('1500.00')
+  })
 })
