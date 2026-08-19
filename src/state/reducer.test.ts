@@ -29,6 +29,18 @@ describe('reducer', () => {
     expect(initial.expenses).toEqual([])
   })
 
+  it('switches the selected month to the added expense\'s month', () => {
+    const initial: ExpenseState = { expenses: [], selectedMonth: '2026-01' }
+    const next = reducer(initial, { type: 'ADD_EXPENSE', expense })
+    expect(next.selectedMonth).toBe('2026-08')
+  })
+
+  it('keeps the selected month unchanged when the expense is already in it', () => {
+    const initial: ExpenseState = { expenses: [], selectedMonth: '2026-08' }
+    const next = reducer(initial, { type: 'ADD_EXPENSE', expense })
+    expect(next.selectedMonth).toBe('2026-08')
+  })
+
   it('changes the selected month', () => {
     const initial: ExpenseState = { expenses: [], selectedMonth: '2026-08' }
     const next = reducer(initial, { type: 'SELECT_MONTH', month: '2026-09' })

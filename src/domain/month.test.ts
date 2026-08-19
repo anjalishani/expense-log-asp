@@ -9,6 +9,13 @@ describe('nextMonth', () => {
   it('rolls over into the next year from December', () => {
     expect(nextMonth('2026-12')).toBe('2027-01')
   })
+
+  it.each(['2026-13', '2026-00', '2026-1', '2026', 'not-a-month', ''])(
+    'rejects the malformed month key %s instead of producing a further-invalid key',
+    (malformed) => {
+      expect(() => nextMonth(malformed)).toThrow('Invalid month key')
+    },
+  )
 })
 
 describe('previousMonth', () => {
@@ -19,6 +26,13 @@ describe('previousMonth', () => {
   it('rolls back into the prior year from January', () => {
     expect(previousMonth('2026-01')).toBe('2025-12')
   })
+
+  it.each(['2026-13', '2026-00', '2026-1', '2026', 'not-a-month', ''])(
+    'rejects the malformed month key %s instead of producing a further-invalid key',
+    (malformed) => {
+      expect(() => previousMonth(malformed)).toThrow('Invalid month key')
+    },
+  )
 })
 
 describe('formatMonthLabel', () => {
@@ -30,7 +44,10 @@ describe('formatMonthLabel', () => {
     expect(formatMonthLabel('2026-01')).toBe('January 2026')
   })
 
-  it('falls back rather than rendering undefined for an out-of-range month', () => {
-    expect(formatMonthLabel('2026-13')).toBe('Unknown month 2026')
-  })
+  it.each(['2026-13', '2026-00', '2026-1', '2026', 'not-a-month', ''])(
+    'rejects the malformed month key %s instead of rendering "Unknown month" or "NaN"',
+    (malformed) => {
+      expect(() => formatMonthLabel(malformed)).toThrow('Invalid month key')
+    },
+  )
 })

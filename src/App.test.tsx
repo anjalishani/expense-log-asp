@@ -45,14 +45,18 @@ describe('App', () => {
     expect(screen.getByLabelText('Amount')).toHaveValue('')
   })
 
-  it('does not show an expense logged in a different month', async () => {
+  it('switches to the expense\'s month when it is logged outside the viewed month', async () => {
     const user = userEvent.setup()
     render(<App />)
 
     await addExpense(user, '2000-01-15', '12.34', 'Groceries')
 
-    expect(screen.getByText('No expenses this month.')).toBeInTheDocument()
-    expect(screen.queryByText('2000-01-15')).not.toBeInTheDocument()
+    // Previously this entry would silently vanish because the list stayed on
+    // the originally viewed month. It must now be visible where it was added.
+    expect(screen.queryByText('No expenses this month.')).not.toBeInTheDocument()
+    expect(screen.getByText('January 2000')).toBeInTheDocument()
+    const list = within(screen.getByRole('list'))
+    expect(list.getByText('2000-01-15')).toBeInTheDocument()
   })
 
   it('follows the selected month when navigating with Previous/Next', async () => {
