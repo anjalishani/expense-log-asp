@@ -112,11 +112,12 @@ describe('App', () => {
     await user.type(screen.getByLabelText('Monthly limit'), '1500')
     await user.click(screen.getByRole('button', { name: 'Set limit' }))
 
-    // A different month must not inherit or see this month's explicit limit.
-    await user.click(screen.getByRole('button', { name: 'Next' }))
+    // An earlier month must never inherit a later month's limit (only carry-
+    // forward, never carry-back).
+    await user.click(screen.getByRole('button', { name: 'Previous' }))
     expect(screen.getByLabelText('Monthly limit')).toHaveValue('')
 
-    await user.click(screen.getByRole('button', { name: 'Previous' }))
+    await user.click(screen.getByRole('button', { name: 'Next' }))
     expect(screen.getByLabelText('Monthly limit')).toHaveValue('1500.00')
   })
 
@@ -138,5 +139,32 @@ describe('App', () => {
 
     await user.click(screen.getByRole('button', { name: 'Previous' }))
     expect(screen.getByLabelText('Monthly limit')).toHaveValue('1500.00')
+  })
+
+  it('carries a limit forward into a later month with no explicit limit of its own', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+
+    await user.type(screen.getByLabelText('Monthly limit'), '1500')
+    await user.click(screen.getByRole('button', { name: 'Set limit' }))
+
+    await user.click(screen.getByRole('button', { name: 'Next' }))
+    expect(screen.getByLabelText('Monthly limit')).toHaveValue('1500.00')
+
+    // An earlier month must never be rewritten by carry-forward display alone.
+    await user.click(screen.getByRole('button', { name: 'Previous' }))
+    expect(screen.getByLabelText('Monthly limit')).toHaveValue('1500.00')
+  })
+
+  it('shows no inherited limit for a month before any limit was ever set', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+
+    await user.click(screen.getByRole('button', { name: 'Next' }))
+    await user.type(screen.getByLabelText('Monthly limit'), '1500')
+    await user.click(screen.getByRole('button', { name: 'Set limit' }))
+
+    await user.click(screen.getByRole('button', { name: 'Previous' }))
+    expect(screen.getByLabelText('Monthly limit')).toHaveValue('')
   })
 })

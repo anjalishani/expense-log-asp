@@ -3,7 +3,8 @@
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 **Last updated:** 2026-08-19 — after month navigation (story #14), Playwright (PR #41,
-story #8), per-category totals (story #15), and setting a monthly limit (story #16) landed.
+story #8), per-category totals (story #15), setting a monthly limit (story #16), and
+carry-forward limit resolution (story #17) landed.
 Keep this current as the project moves; a stale CLAUDE.md is worse than none.
 
 ## What this project is
@@ -29,7 +30,7 @@ instructions.
 
 ## Current state
 
-Stories #11–#16 have landed: `domain/types.ts` and `domain/money.ts` (parse/format of integer
+Stories #11–#17 have landed: `domain/types.ts` and `domain/money.ts` (parse/format of integer
 minor units), the `state/reducer.ts` `ADD_EXPENSE`/`SELECT_MONTH`/`SET_LIMIT` actions,
 `ExpenseForm` + `ExpenseList` + `MonthNavigator` + `CategoryTotals` + `BudgetSummary` wired
 into `App.tsx` behind `useReducer`, `domain/expenses.ts` (`expensesInMonth`, `categoryTotals`)
@@ -39,11 +40,15 @@ boundaries. `state/currentMonth.ts` only supplies the initial `selectedMonth` wh
 is created; navigation itself is reducer state now, not a fresh clock read on every render.
 State is in-memory only — persistence is epic 4, not built yet. `src/storage/` is still empty.
 
-`BudgetSummary` (story #16) only sets an **explicit** limit for the exact viewed month —
-`state.limits[state.selectedMonth]`, no carry-forward yet. It's mounted with `key={selectedMonth}`
-so it remounts (and re-syncs its input from the resolved limit) on every month change, rather
-than tracking the prop with a `useEffect`. Carry-forward resolution (#17), the remaining-budget
-display (#18), and the over-limit warning (#19) don't exist yet — the rest of epic 3.
+`BudgetSummary` sets an **explicit** limit for the exact viewed month via `SET_LIMIT`, but its
+displayed/pre-filled value comes from `domain/limits.ts`'s `resolveLimit(limits, month)` (story
+#17): the month's own explicit limit if set, else the nearest **earlier** month's, else
+`undefined` — never zero, and never a *later* month's (carry-forward only goes one direction).
+Editing and submitting a carried-forward value writes a new explicit entry for the viewed month
+only; it does not touch the month it was inherited from. `BudgetSummary` is mounted with
+`key={selectedMonth}` so it remounts (and re-syncs its input from the resolved limit) on every
+month change, rather than tracking the prop with a `useEffect`. The remaining-budget display
+(#18) and the over-limit warning (#19) don't exist yet — the rest of epic 3.
 
 `BudgetSummary` also commits a valid value on blur, not only on explicit submit — `ADD_EXPENSE`
 can auto-switch `selectedMonth` (see above), which remounts `BudgetSummary` and would otherwise

@@ -93,4 +93,17 @@ describe('BudgetSummary', () => {
 
     expect(screen.getByLabelText('Monthly limit')).toHaveValue('1500.00')
   })
+
+  it('commits a pre-filled (e.g. carried-forward) value on submit, unedited', async () => {
+    // PR #44 review: seeding the duplicate-dispatch guard with the initial
+    // prop made submitting an inherited value a silent no-op.
+    const user = userEvent.setup()
+    const onSetLimit = vi.fn()
+    render(<BudgetSummary limit={150000} onSetLimit={onSetLimit} />)
+
+    await user.click(screen.getByRole('button', { name: 'Set limit' }))
+
+    expect(onSetLimit).toHaveBeenCalledTimes(1)
+    expect(onSetLimit).toHaveBeenCalledWith(150000)
+  })
 })

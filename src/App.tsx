@@ -7,6 +7,7 @@ import { MonthNavigator } from './components/MonthNavigator'
 import { reducer, type ExpenseState } from './state/reducer'
 import { currentMonthKey } from './state/currentMonth'
 import { expensesInMonth } from './domain/expenses'
+import { resolveLimit } from './domain/limits'
 import type { Expense, MonthKey } from './domain/types'
 
 function createInitialState(): ExpenseState {
@@ -39,7 +40,7 @@ export default function App() {
       <CategoryTotals expenses={monthExpenses} />
       <BudgetSummary
         key={state.selectedMonth}
-        limit={state.limits[state.selectedMonth]}
+        limit={resolveLimit(state.limits, state.selectedMonth)}
         onSetLimit={handleSetLimit}
       />
     </main>
