@@ -101,5 +101,7 @@ describe('App', () => {
     expect(totals.getByText('20.00')).toBeInTheDocument()
     // Rent had no expenses this month, so it must not appear as a zero row.
     expect(totals.queryByText('Rent')).not.toBeInTheDocument()
+    // The month total must equal the sum of the category totals shown above.
+    expect(screen.getByTestId('month-total')).toHaveTextContent('35.50')
   })
 })

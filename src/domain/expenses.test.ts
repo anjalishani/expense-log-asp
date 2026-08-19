@@ -1,16 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { categoryTotals, expensesInMonth } from './expenses'
-import type { Expense } from './types'
-
-function expense(overrides: Partial<Expense>): Expense {
-  return {
-    id: '1',
-    date: '2026-08-01',
-    amount: 100,
-    category: 'Groceries',
-    ...overrides,
-  }
-}
+import { expense } from '../test/fixtures'
 
 describe('expensesInMonth', () => {
   it('excludes expenses from other months', () => {

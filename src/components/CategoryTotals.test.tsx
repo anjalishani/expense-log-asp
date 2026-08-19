@@ -1,17 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { CategoryTotals } from './CategoryTotals'
-import type { Expense } from '../domain/types'
-
-function expense(overrides: Partial<Expense>): Expense {
-  return {
-    id: '1',
-    date: '2026-08-01',
-    amount: 100,
-    category: 'Groceries',
-    ...overrides,
-  }
-}
+import { expense } from '../test/fixtures'
 
 describe('CategoryTotals', () => {
   it('shows an empty state when there are no expenses', () => {
@@ -41,5 +31,24 @@ describe('CategoryTotals', () => {
 
     expect(screen.queryByText('Groceries')).not.toBeInTheDocument()
     expect(screen.queryByText('Transport')).not.toBeInTheDocument()
+  })
+
+  it('exposes a stable data-testid per category row, per the design spec', () => {
+    render(<CategoryTotals expenses={[expense({ category: 'Groceries', amount: 100 })]} />)
+
+    expect(screen.getByTestId('category-total-Groceries')).toHaveTextContent('1.00')
+  })
+
+  it('shows a month total, under data-testid="month-total", equal to the sum of category totals', () => {
+    render(
+      <CategoryTotals
+        expenses={[
+          expense({ id: '1', category: 'Groceries', amount: 100 }),
+          expense({ id: '2', category: 'Transport', amount: 500 }),
+        ]}
+      />,
+    )
+
+    expect(screen.getByTestId('month-total')).toHaveTextContent('6.00')
   })
 })

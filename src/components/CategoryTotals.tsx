@@ -13,14 +13,19 @@ export function CategoryTotals({ expenses }: Props) {
     return <p>No spending this month.</p>
   }
 
+  const monthTotal = totals.reduce((sum, row) => sum + row.total, 0)
+
   return (
-    <ul aria-label="Category totals">
-      {totals.map((row) => (
-        <li key={row.category}>
-          <span>{row.category}</span>
-          <span>{formatMinorUnits(row.total)}</span>
-        </li>
-      ))}
-    </ul>
+    <>
+      <ul aria-label="Category totals">
+        {totals.map((row) => (
+          <li key={row.category} data-testid={`category-total-${row.category}`}>
+            <span>{row.category}</span>
+            <span>{formatMinorUnits(row.total)}</span>
+          </li>
+        ))}
+      </ul>
+      <p data-testid="month-total">Total: {formatMinorUnits(monthTotal)}</p>
+    </>
   )
 }

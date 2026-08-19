@@ -42,7 +42,11 @@ exist yet. `src/storage/` is still empty.
 
 Both `ExpenseList` and `CategoryTotals` render an `<ul>`, disambiguated for tests via
 `aria-label` (`"Expenses"` and `"Category totals"`) — plain `getByRole('list')` is ambiguous
-once both are non-empty.
+once both are non-empty. `CategoryTotals` also renders a month total (sum of the category
+rows) under `data-testid="month-total"`, and each category row carries
+`data-testid="category-total-<category>"` — both are the stable E2E hooks the design spec
+calls for (spec §7). Shared test fixtures (the `expense()` builder) live in
+`src/test/fixtures.ts`.
 
 **Vitest is wired** (`npm run test`, jsdom + React Testing Library, config in
 `vitest.config.ts` / `src/test/setup.ts`). **Playwright is wired** (`npm run test:e2e`,
