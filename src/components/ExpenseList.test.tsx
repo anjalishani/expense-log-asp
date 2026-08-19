@@ -6,7 +6,7 @@ import type { Expense } from '../domain/types'
 describe('ExpenseList', () => {
   it('shows an empty state when there are no expenses', () => {
     render(<ExpenseList expenses={[]} />)
-    expect(screen.getByText('No expenses yet.')).toBeInTheDocument()
+    expect(screen.getByText('No expenses this month.')).toBeInTheDocument()
   })
 
   it('lists a submitted expense', () => {

@@ -2,7 +2,7 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-**Last updated:** 2026-08-19 — after the app scaffold landed (PR #33, story #6).
+**Last updated:** 2026-08-19 — after the month view landed (story #13).
 Keep this current as the project moves; a stale CLAUDE.md is worse than none.
 
 ## What this project is
@@ -28,11 +28,15 @@ instructions.
 
 ## Current state
 
-Stories #11 and #12 have landed: `domain/types.ts` and `domain/money.ts` (parse/format of
-integer minor units), the `state/reducer.ts` `ADD_EXPENSE` action, and `ExpenseForm` +
-`ExpenseList` wired into `App.tsx` behind `useReducer`. State is in-memory only — persistence
-is epic 4, not built yet. `ExpenseList` has no month filtering or ordering yet; that's story
-#13. `src/storage/` is still empty.
+Stories #11, #12, and #13 have landed: `domain/types.ts` and `domain/money.ts` (parse/format
+of integer minor units), the `state/reducer.ts` `ADD_EXPENSE` action, `ExpenseForm` +
+`ExpenseList` wired into `App.tsx` behind `useReducer`, and `domain/expenses.ts`
+(`expensesInMonth`) filtering and sorting the list to the current month, newest first. State is
+in-memory only — persistence is epic 4, not built yet. The viewed month is fixed to the real
+current month via `state/currentMonth.ts`; there is no way to navigate to another month yet —
+that's story #14, which will need to lift month selection into `state/reducer.ts` (a
+`SELECT_MONTH` action) rather than reading the system clock directly. `src/storage/` is still
+empty.
 
 **Vitest is wired** (`npm run test`, jsdom + React Testing Library, config in
 `vitest.config.ts` / `src/test/setup.ts`). **Playwright** (story #8) is not yet wired — no
