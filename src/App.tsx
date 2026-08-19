@@ -1,11 +1,23 @@
+import { useReducer } from 'react'
+import { ExpenseForm } from './components/ExpenseForm'
+import { ExpenseList } from './components/ExpenseList'
+import { reducer, type ExpenseState } from './state/reducer'
+import type { Expense } from './domain/types'
+
+const initialState: ExpenseState = { expenses: [] }
+
 export default function App() {
+  const [state, dispatch] = useReducer(reducer, initialState)
+
+  function handleAdd(expense: Expense) {
+    dispatch({ type: 'ADD_EXPENSE', expense })
+  }
+
   return (
     <main>
       <h1>Expense Log</h1>
-      <p>
-        Scaffold only. Expense capture, the month view, and the budget limit arrive with
-        epics 2 to 4.
-      </p>
+      <ExpenseForm onAdd={handleAdd} />
+      <ExpenseList expenses={state.expenses} />
     </main>
   )
 }

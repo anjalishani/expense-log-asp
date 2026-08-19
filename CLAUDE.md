@@ -28,12 +28,15 @@ instructions.
 
 ## Current state
 
-The app is scaffolded and runs, but has no features: `App.tsx` renders a placeholder. The
-`src/domain/`, `src/storage/`, `src/state/`, and `src/components/` folders exist and are
-empty apart from a note describing what belongs in each.
+Stories #11 and #12 have landed: `domain/types.ts` and `domain/money.ts` (parse/format of
+integer minor units), the `state/reducer.ts` `ADD_EXPENSE` action, and `ExpenseForm` +
+`ExpenseList` wired into `App.tsx` behind `useReducer`. State is in-memory only — persistence
+is epic 4, not built yet. `ExpenseList` has no month filtering or ordering yet; that's story
+#13. `src/storage/` is still empty.
 
-Not yet wired: **Vitest** (story #7) and **Playwright** (story #8). There is no test command
-until those land — don't assume one exists.
+**Vitest is wired** (`npm run test`, jsdom + React Testing Library, config in
+`vitest.config.ts` / `src/test/setup.ts`). **Playwright** (story #8) is not yet wired — no
+end-to-end test command exists until it lands.
 
 Work is tracked as **GitHub issues**, not Jira: issues #1–#5 are the epics, #6–#30 the
 stories, linked as native sub-issues. Every story in `doc/backlog.md` carries its issue
@@ -50,6 +53,7 @@ npm install      # requires Node ^20.19.0 || >=22.12.0 — Vite 7's floor, not j
 npm run dev      # dev server on http://localhost:5173 (strictPort: fails if busy, never drifts)
 npm run build    # tsc -b && vite build
 npm run typecheck
+npm run test     # vitest run — unit + component tests, jsdom
 ```
 
 TypeScript uses project references: `tsconfig.app.json` covers `src/` with DOM libs,
