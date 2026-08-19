@@ -45,6 +45,13 @@ so it remounts (and re-syncs its input from the resolved limit) on every month c
 than tracking the prop with a `useEffect`. Carry-forward resolution (#17), the remaining-budget
 display (#18), and the over-limit warning (#19) don't exist yet — the rest of epic 3.
 
+`BudgetSummary` also commits a valid value on blur, not only on explicit submit — `ADD_EXPENSE`
+can auto-switch `selectedMonth` (see above), which remounts `BudgetSummary` and would otherwise
+silently discard an unsubmitted edit (PR #43 review). A `lastCommitted` ref stops that from
+double-firing `onSetLimit` when a button click blurs the field and then triggers its own submit.
+The amount-parse/error/disabled-submit logic shared by `BudgetSummary` and `ExpenseForm` lives
+in `components/useAmountInput.ts`.
+
 Both `ExpenseList` and `CategoryTotals` render an `<ul>`, disambiguated for tests via
 `aria-label` (`"Expenses"` and `"Category totals"`) — plain `getByRole('list')` is ambiguous
 once both are non-empty. `CategoryTotals` also renders a month total (sum of the category

@@ -119,4 +119,24 @@ describe('App', () => {
     await user.click(screen.getByRole('button', { name: 'Previous' }))
     expect(screen.getByLabelText('Monthly limit')).toHaveValue('1500.00')
   })
+
+  it('does not silently discard an unsubmitted limit when adding an expense switches the month', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+    const thisMonth = currentMonthKey()
+    const followingMonth = nextMonth(thisMonth)
+    const followingMonthDate = `${followingMonth}-10`
+
+    // Type a limit for the current month but never click "Set limit" — focus
+    // moves to the expense form's Date field next, which blurs this input.
+    await user.type(screen.getByLabelText('Monthly limit'), '1500')
+
+    // Logging an expense dated in a different month auto-switches selectedMonth
+    // (see reducer.ts ADD_EXPENSE), which remounts BudgetSummary. Per PR #43
+    // review, this used to silently discard the unsubmitted "1500".
+    await addExpense(user, followingMonthDate, '20.00', 'Groceries')
+
+    await user.click(screen.getByRole('button', { name: 'Previous' }))
+    expect(screen.getByLabelText('Monthly limit')).toHaveValue('1500.00')
+  })
 })

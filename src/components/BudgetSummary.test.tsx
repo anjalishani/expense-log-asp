@@ -50,4 +50,47 @@ describe('BudgetSummary', () => {
     expect(screen.getByRole('button', { name: 'Set limit' })).toBeDisabled()
     expect(onSetLimit).not.toHaveBeenCalled()
   })
+
+  it('commits a valid value on blur, without needing an explicit submit click', async () => {
+    const user = userEvent.setup()
+    const onSetLimit = vi.fn()
+    render(
+      <>
+        <BudgetSummary limit={undefined} onSetLimit={onSetLimit} />
+        <button type="button">Elsewhere</button>
+      </>,
+    )
+
+    await user.type(screen.getByLabelText('Monthly limit'), '1500')
+    await user.click(screen.getByRole('button', { name: 'Elsewhere' }))
+
+    expect(onSetLimit).toHaveBeenCalledTimes(1)
+    expect(onSetLimit).toHaveBeenCalledWith(150000)
+  })
+
+  it('does not commit on blur when the input is invalid', async () => {
+    const user = userEvent.setup()
+    const onSetLimit = vi.fn()
+    render(
+      <>
+        <BudgetSummary limit={undefined} onSetLimit={onSetLimit} />
+        <button type="button">Elsewhere</button>
+      </>,
+    )
+
+    await user.type(screen.getByLabelText('Monthly limit'), 'abc')
+    await user.click(screen.getByRole('button', { name: 'Elsewhere' }))
+
+    expect(onSetLimit).not.toHaveBeenCalled()
+  })
+
+  it('reformats the displayed value to canonical form after a successful submit', async () => {
+    const user = userEvent.setup()
+    render(<BudgetSummary limit={undefined} onSetLimit={vi.fn()} />)
+
+    await user.type(screen.getByLabelText('Monthly limit'), '1500')
+    await user.click(screen.getByRole('button', { name: 'Set limit' }))
+
+    expect(screen.getByLabelText('Monthly limit')).toHaveValue('1500.00')
+  })
 })

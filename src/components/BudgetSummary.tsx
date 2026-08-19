@@ -1,5 +1,6 @@
-import { useId, useState } from 'react'
-import { formatMinorUnits, parseAmountToMinorUnits } from '../domain/money'
+import { useId, useRef } from 'react'
+import { useAmountInput } from './useAmountInput'
+import { formatMinorUnits } from '../domain/money'
 
 type Props = {
   limit: number | undefined
@@ -7,16 +8,25 @@ type Props = {
 }
 
 export function BudgetSummary({ limit, onSetLimit }: Props) {
-  const [value, setValue] = useState(limit === undefined ? '' : formatMinorUnits(limit))
+  const { value, setValue, result, error } = useAmountInput(
+    limit === undefined ? '' : formatMinorUnits(limit),
+  )
   const limitId = useId()
+  // Both a blur and the resulting submit can fire for one button click
+  // (focus leaves the input before the click handler runs); track the last
+  // committed amount so that sequence doesn't call onSetLimit twice.
+  const lastCommitted = useRef(limit)
 
-  const result = parseAmountToMinorUnits(value)
-  const error = value !== '' && !result.ok ? result.error : null
+  function commit() {
+    if (!result.ok || result.minorUnits === lastCommitted.current) return
+    lastCommitted.current = result.minorUnits
+    onSetLimit(result.minorUnits)
+    setValue(formatMinorUnits(result.minorUnits))
+  }
 
   function handleSubmit(event: React.FormEvent) {
     event.preventDefault()
-    if (!result.ok) return
-    onSetLimit(result.minorUnits)
+    commit()
   }
 
   return (
@@ -28,6 +38,7 @@ export function BudgetSummary({ limit, onSetLimit }: Props) {
         inputMode="decimal"
         value={value}
         onChange={(event) => setValue(event.target.value)}
+        onBlur={commit}
       />
       {error && <span>{error}</span>}
       <button type="submit" disabled={!result.ok}>
