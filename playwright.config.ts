@@ -1,5 +1,10 @@
 import { defineConfig, devices } from '@playwright/test'
 
+// Matches vite.config.ts's strictPort dev server (port 5173, never drifts) so
+// the suite's baseURL and the webServer readiness probe always agree on the
+// same address.
+const baseURL = 'http://localhost:5173'
+
 export default defineConfig({
   testDir: './e2e',
   fullyParallel: true,
@@ -7,9 +12,7 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   reporter: 'html',
   use: {
-    // Matches vite.config.ts's strictPort dev server so the suite always hits
-    // the app it just started, never a stale one on a different port.
-    baseURL: 'http://localhost:5173',
+    baseURL,
     trace: 'on-first-retry',
   },
 
@@ -25,7 +28,7 @@ export default defineConfig({
   // instead of double-starting on the (strict) 5173 port.
   webServer: {
     command: 'npm run dev',
-    url: 'http://localhost:5173',
+    url: baseURL,
     reuseExistingServer: !process.env.CI,
   },
 })
