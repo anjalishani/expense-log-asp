@@ -2,6 +2,8 @@ import { useReducer } from 'react'
 import { ExpenseForm } from './components/ExpenseForm'
 import { ExpenseList } from './components/ExpenseList'
 import { reducer, type ExpenseState } from './state/reducer'
+import { currentMonthKey } from './state/currentMonth'
+import { expensesInMonth } from './domain/expenses'
 import type { Expense } from './domain/types'
 
 const initialState: ExpenseState = { expenses: [] }
@@ -17,7 +19,7 @@ export default function App() {
     <main>
       <h1>Expense Log</h1>
       <ExpenseForm onAdd={handleAdd} />
-      <ExpenseList expenses={state.expenses} />
+      <ExpenseList expenses={expensesInMonth(state.expenses, currentMonthKey())} />
     </main>
   )
 }
