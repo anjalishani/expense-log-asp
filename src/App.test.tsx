@@ -2,11 +2,15 @@ import { describe, expect, it } from 'vitest'
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import App from './App'
-import { currentMonthKey } from './state/currentMonth'
 
 function todayIsoDate(): string {
-  const day = String(new Date().getDate()).padStart(2, '0')
-  return `${currentMonthKey()}-${day}`
+  // Single Date instant: currentMonthKey() would call `new Date()` again for
+  // the year/month half, which can race across a month boundary and produce
+  // an invalid composite date (e.g. "2026-09-31").
+  const now = new Date()
+  const month = String(now.getMonth() + 1).padStart(2, '0')
+  const day = String(now.getDate()).padStart(2, '0')
+  return `${now.getFullYear()}-${month}-${day}`
 }
 
 describe('App', () => {
