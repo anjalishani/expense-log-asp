@@ -38,7 +38,7 @@ describe('App', () => {
     await addExpense(user, today, '12.34', 'Groceries')
 
     expect(screen.queryByText('No expenses this month.')).not.toBeInTheDocument()
-    const list = within(screen.getByRole('list'))
+    const list = within(screen.getByRole('list', { name: 'Expenses' }))
     expect(list.getByText(today)).toBeInTheDocument()
     expect(list.getByText('12.34')).toBeInTheDocument()
     expect(list.getByText('Groceries')).toBeInTheDocument()
@@ -55,7 +55,7 @@ describe('App', () => {
     // the originally viewed month. It must now be visible where it was added.
     expect(screen.queryByText('No expenses this month.')).not.toBeInTheDocument()
     expect(screen.getByText('January 2000')).toBeInTheDocument()
-    const list = within(screen.getByRole('list'))
+    const list = within(screen.getByRole('list', { name: 'Expenses' }))
     expect(list.getByText('2000-01-15')).toBeInTheDocument()
   })
 
@@ -67,17 +67,39 @@ describe('App', () => {
     const followingMonth = nextMonth(thisMonth)
     const followingMonthDate = `${followingMonth}-10`
 
+    function expenseList() {
+      return within(screen.getByRole('list', { name: 'Expenses' }))
+    }
+
     await addExpense(user, thisMonthDate, '10.00', 'Groceries')
-    expect(within(screen.getByRole('list')).getByText(thisMonthDate)).toBeInTheDocument()
+    expect(expenseList().getByText(thisMonthDate)).toBeInTheDocument()
 
     await user.click(screen.getByRole('button', { name: 'Next' }))
     expect(screen.getByText('No expenses this month.')).toBeInTheDocument()
 
     await addExpense(user, followingMonthDate, '20.00', 'Transport')
-    expect(within(screen.getByRole('list')).getByText(followingMonthDate)).toBeInTheDocument()
+    expect(expenseList().getByText(followingMonthDate)).toBeInTheDocument()
 
     await user.click(screen.getByRole('button', { name: 'Previous' }))
-    expect(within(screen.getByRole('list')).getByText(thisMonthDate)).toBeInTheDocument()
+    expect(expenseList().getByText(thisMonthDate)).toBeInTheDocument()
     expect(screen.queryByText(followingMonthDate)).not.toBeInTheDocument()
+  })
+
+  it('shows a per-category total that updates as expenses are added', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+    const today = todayIsoDate()
+
+    expect(screen.getByText('No spending this month.')).toBeInTheDocument()
+
+    await addExpense(user, today, '10.00', 'Groceries')
+    await addExpense(user, today, '5.50', 'Groceries')
+    await addExpense(user, today, '20.00', 'Transport')
+
+    const totals = within(screen.getByRole('list', { name: 'Category totals' }))
+    expect(totals.getByText('15.50')).toBeInTheDocument()
+    expect(totals.getByText('20.00')).toBeInTheDocument()
+    // Rent had no expenses this month, so it must not appear as a zero row.
+    expect(totals.queryByText('Rent')).not.toBeInTheDocument()
   })
 })
