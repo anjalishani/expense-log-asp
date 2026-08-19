@@ -1,5 +1,6 @@
 import { useId, useRef } from 'react'
 import { useAmountInput } from './useAmountInput'
+import { budgetStatus } from '../domain/limits'
 import { formatMinorUnits } from '../domain/money'
 
 type Props = {
@@ -54,7 +55,7 @@ export function BudgetSummary({ limit, spent, onSetLimit }: Props) {
       ) : (
         <p data-testid="remaining">Remaining: {formatMinorUnits(limit - spent)}</p>
       )}
-      {limit !== undefined && spent > limit && (
+      {budgetStatus(limit, spent) === 'over' && (
         <p role="alert" data-testid="over-limit-warning">
           You've gone over your monthly limit.
         </p>

@@ -59,10 +59,12 @@ showing a placeholder — this is deliberate: a month with no limit must never w
 there's nothing meaningful to render as "remaining."
 
 The over-limit warning (story #19, closing epic 3) is a `<p role="alert" data-testid=
-"over-limit-warning">` rendered only when `limit !== undefined && spent > limit` — strictly
-greater, so spend exactly at the limit shows zero remaining and no warning ("passed means over,
-not reached"). It's computed inline in `BudgetSummary`, not a separate helper: there's no logic
-beyond the one comparison already needed for the `remaining` figure.
+"over-limit-warning">` rendered only when `domain/limits.ts`'s `budgetStatus(limit, spent)`
+returns `'over'` — strictly `spent > limit`, so spend exactly at the limit shows zero remaining
+and no warning ("passed means over, not reached"). `budgetStatus` resolves the tri-state
+`BudgetStatus` type declared back in `domain/types.ts` (#11/#12) that had gone unused until
+now; `BudgetSummary` is its first consumer, alongside its own separate `limit - spent`
+subtraction for the `remaining` figure — the two are independent, not the same check.
 
 `BudgetSummary` also commits a valid value on blur, not only on explicit submit — `ADD_EXPENSE`
 can auto-switch `selectedMonth` (see above), which remounts `BudgetSummary` and would otherwise

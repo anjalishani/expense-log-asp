@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { resolveLimit } from './limits'
+import { budgetStatus, resolveLimit } from './limits'
 import type { Limits } from './types'
 
 describe('resolveLimit', () => {
@@ -41,5 +41,23 @@ describe('resolveLimit', () => {
   it('carries forward correctly across a year boundary', () => {
     const limits: Limits = { '2025-12': 100000 }
     expect(resolveLimit(limits, '2026-01')).toBe(100000)
+  })
+})
+
+describe('budgetStatus', () => {
+  it('is "no-limit" when there is no resolved limit', () => {
+    expect(budgetStatus(undefined, 5000)).toBe('no-limit')
+  })
+
+  it('is "under" when spend is below the limit', () => {
+    expect(budgetStatus(150000, 100000)).toBe('under')
+  })
+
+  it('is "under" when spend exactly equals the limit — passed means over, not reached', () => {
+    expect(budgetStatus(150000, 150000)).toBe('under')
+  })
+
+  it('is "over" once spend exceeds the limit by a single minor unit', () => {
+    expect(budgetStatus(150000, 150001)).toBe('over')
   })
 })
