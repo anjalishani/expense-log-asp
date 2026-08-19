@@ -2,7 +2,7 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-**Last updated:** 2026-08-19 — after the month view landed (story #13).
+**Last updated:** 2026-08-19 — after month navigation landed (story #14).
 Keep this current as the project moves; a stale CLAUDE.md is worse than none.
 
 ## What this project is
@@ -28,15 +28,16 @@ instructions.
 
 ## Current state
 
-Stories #11, #12, and #13 have landed: `domain/types.ts` and `domain/money.ts` (parse/format
-of integer minor units), the `state/reducer.ts` `ADD_EXPENSE` action, `ExpenseForm` +
-`ExpenseList` wired into `App.tsx` behind `useReducer`, and `domain/expenses.ts`
-(`expensesInMonth`) filtering and sorting the list to the current month, newest first. State is
-in-memory only — persistence is epic 4, not built yet. The viewed month is fixed to the real
-current month via `state/currentMonth.ts`; there is no way to navigate to another month yet —
-that's story #14, which will need to lift month selection into `state/reducer.ts` (a
-`SELECT_MONTH` action) rather than reading the system clock directly. `src/storage/` is still
-empty.
+Stories #11–#14 have landed: `domain/types.ts` and `domain/money.ts` (parse/format of integer
+minor units), the `state/reducer.ts` `ADD_EXPENSE`/`SELECT_MONTH` actions, `ExpenseForm` +
+`ExpenseList` + `MonthNavigator` wired into `App.tsx` behind `useReducer`, `domain/expenses.ts`
+(`expensesInMonth`) filtering and sorting the list to the selected month newest first, and
+`domain/month.ts` (`nextMonth`/`previousMonth`) for unbounded month navigation across year
+boundaries. `state/currentMonth.ts` only supplies the initial `selectedMonth` when the reducer
+is created; navigation itself is reducer state now, not a fresh clock read on every render.
+State is in-memory only — persistence is epic 4, not built yet. Category totals (#15) and the
+budget summary (epic 3) don't exist yet, so `MonthNavigator` only drives the expense list so
+far. `src/storage/` is still empty.
 
 **Vitest is wired** (`npm run test`, jsdom + React Testing Library, config in
 `vitest.config.ts` / `src/test/setup.ts`). **Playwright** (story #8) is not yet wired — no

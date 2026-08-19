@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest'
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import App from './App'
+import { currentMonthKey } from './state/currentMonth'
+import { nextMonth } from './domain/month'
 
 function todayIsoDate(): string {
   // Single Date instant: currentMonthKey() would call `new Date()` again for
@@ -13,6 +15,18 @@ function todayIsoDate(): string {
   return `${now.getFullYear()}-${month}-${day}`
 }
 
+async function addExpense(
+  user: ReturnType<typeof userEvent.setup>,
+  date: string,
+  amount: string,
+  category: string,
+) {
+  await user.type(screen.getByLabelText('Date'), date)
+  await user.type(screen.getByLabelText('Amount'), amount)
+  await user.selectOptions(screen.getByLabelText('Category'), category)
+  await user.click(screen.getByRole('button', { name: 'Add expense' }))
+}
+
 describe('App', () => {
   it('adds an expense through the form and shows it in the list', async () => {
     const user = userEvent.setup()
@@ -21,10 +35,7 @@ describe('App', () => {
 
     expect(screen.getByText('No expenses this month.')).toBeInTheDocument()
 
-    await user.type(screen.getByLabelText('Date'), today)
-    await user.type(screen.getByLabelText('Amount'), '12.34')
-    await user.selectOptions(screen.getByLabelText('Category'), 'Groceries')
-    await user.click(screen.getByRole('button', { name: 'Add expense' }))
+    await addExpense(user, today, '12.34', 'Groceries')
 
     expect(screen.queryByText('No expenses this month.')).not.toBeInTheDocument()
     const list = within(screen.getByRole('list'))
@@ -34,16 +45,39 @@ describe('App', () => {
     expect(screen.getByLabelText('Amount')).toHaveValue('')
   })
 
-  it('does not show an expense logged in a different month', async () => {
+  it('switches to the expense\'s month when it is logged outside the viewed month', async () => {
     const user = userEvent.setup()
     render(<App />)
 
-    await user.type(screen.getByLabelText('Date'), '2000-01-15')
-    await user.type(screen.getByLabelText('Amount'), '12.34')
-    await user.selectOptions(screen.getByLabelText('Category'), 'Groceries')
-    await user.click(screen.getByRole('button', { name: 'Add expense' }))
+    await addExpense(user, '2000-01-15', '12.34', 'Groceries')
 
+    // Previously this entry would silently vanish because the list stayed on
+    // the originally viewed month. It must now be visible where it was added.
+    expect(screen.queryByText('No expenses this month.')).not.toBeInTheDocument()
+    expect(screen.getByText('January 2000')).toBeInTheDocument()
+    const list = within(screen.getByRole('list'))
+    expect(list.getByText('2000-01-15')).toBeInTheDocument()
+  })
+
+  it('follows the selected month when navigating with Previous/Next', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+    const thisMonth = currentMonthKey()
+    const thisMonthDate = `${thisMonth}-10`
+    const followingMonth = nextMonth(thisMonth)
+    const followingMonthDate = `${followingMonth}-10`
+
+    await addExpense(user, thisMonthDate, '10.00', 'Groceries')
+    expect(within(screen.getByRole('list')).getByText(thisMonthDate)).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: 'Next' }))
     expect(screen.getByText('No expenses this month.')).toBeInTheDocument()
-    expect(screen.queryByText('2000-01-15')).not.toBeInTheDocument()
+
+    await addExpense(user, followingMonthDate, '20.00', 'Transport')
+    expect(within(screen.getByRole('list')).getByText(followingMonthDate)).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: 'Previous' }))
+    expect(within(screen.getByRole('list')).getByText(thisMonthDate)).toBeInTheDocument()
+    expect(screen.queryByText(followingMonthDate)).not.toBeInTheDocument()
   })
 })
