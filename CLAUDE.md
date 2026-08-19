@@ -2,7 +2,8 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-**Last updated:** 2026-08-19 — after month navigation landed (story #14).
+**Last updated:** 2026-08-19 — after month navigation (story #14) and Playwright (PR #41,
+story #8) landed.
 Keep this current as the project moves; a stale CLAUDE.md is worse than none.
 
 ## What this project is
@@ -40,8 +41,10 @@ budget summary (epic 3) don't exist yet, so `MonthNavigator` only drives the exp
 far. `src/storage/` is still empty.
 
 **Vitest is wired** (`npm run test`, jsdom + React Testing Library, config in
-`vitest.config.ts` / `src/test/setup.ts`). **Playwright** (story #8) is not yet wired — no
-end-to-end test command exists until it lands.
+`vitest.config.ts` / `src/test/setup.ts`). **Playwright is wired** (`npm run test:e2e`,
+config in `playwright.config.ts`, specs in `e2e/`) — its `webServer` starts the Vite dev
+server automatically. Only a harness smoke test exists so far; the add-expense (#26) and
+budget-limit boundary (#27) acceptance suites haven't been written yet.
 
 Work is tracked as **GitHub issues**, not Jira: issues #1–#5 are the epics, #6–#30 the
 stories, linked as native sub-issues. Every story in `doc/backlog.md` carries its issue
@@ -59,6 +62,7 @@ npm run dev      # dev server on http://localhost:5173 (strictPort: fails if bus
 npm run build    # tsc -b && vite build
 npm run typecheck
 npm run test     # vitest run — unit + component tests, jsdom
+npm run test:e2e # playwright test — starts the dev server itself, real Chromium
 ```
 
 TypeScript uses project references: `tsconfig.app.json` covers `src/` with DOM libs,

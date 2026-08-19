@@ -1,0 +1,28 @@
+{
+  "compilerOptions": {
+    "composite": true,
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.e2e.tsbuildinfo",
+
+    "target": "ES2023",
+    "lib": ["ES2023", "DOM"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "moduleDetection": "force",
+    "types": ["node"],
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true,
+    "noEmit": true,
+    "skipLibCheck": true,
+
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true
+  },
+  // Playwright specs run in Node but pass callbacks (addInitScript, evaluate)
+  // that execute in the browser, so this needs DOM lib on top of the Node
+  // types tsconfig.node.json uses for vite/vitest config — a third, genuinely
+  // different environment rather than a reason to loosen the other two.
+  "include": ["playwright.config.ts", "e2e"]
+}
