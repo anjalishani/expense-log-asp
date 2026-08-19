@@ -8,6 +8,7 @@ type Props = {
 
 export function ExpenseForm({ onAdd }: Props) {
   const [date, setDate] = useState('')
+  const [dateTouched, setDateTouched] = useState(false)
   const [amount, setAmount] = useState('')
   const [category, setCategory] = useState<Category | ''>('')
   const dateId = useId()
@@ -16,6 +17,7 @@ export function ExpenseForm({ onAdd }: Props) {
 
   const amountResult = parseAmountToMinorUnits(amount)
   const amountError = amount !== '' && !amountResult.ok ? amountResult.error : null
+  const dateError = dateTouched && date === '' ? 'Date is required' : null
   const isValid = amountResult.ok && date !== '' && category !== ''
 
   function handleSubmit(event: React.FormEvent) {
@@ -42,7 +44,9 @@ export function ExpenseForm({ onAdd }: Props) {
         type="date"
         value={date}
         onChange={(event) => setDate(event.target.value)}
+        onBlur={() => setDateTouched(true)}
       />
+      {dateError && <span>{dateError}</span>}
 
       <label htmlFor={amountId}>Amount</label>
       <input

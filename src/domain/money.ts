@@ -8,8 +8,10 @@ export function parseAmountToMinorUnits(input: string): ParseAmountResult {
     return { ok: false, error: 'Enter a valid amount' }
   }
 
-  const [wholePart, fractionPart = ''] = trimmed.split('.')
-  const minorUnits = Number(wholePart) * 100 + Number(fractionPart.padEnd(2, '0'))
+  const isNegative = trimmed.startsWith('-')
+  const [wholePart, fractionPart = ''] = (isNegative ? trimmed.slice(1) : trimmed).split('.')
+  const magnitude = Number(wholePart) * 100 + Number(fractionPart.padEnd(2, '0'))
+  const minorUnits = isNegative ? -magnitude : magnitude
 
   if (minorUnits <= 0) {
     return { ok: false, error: 'Amount must be greater than zero' }
@@ -19,7 +21,9 @@ export function parseAmountToMinorUnits(input: string): ParseAmountResult {
 }
 
 export function formatMinorUnits(minorUnits: number): string {
-  const whole = Math.trunc(minorUnits / 100)
-  const cents = Math.abs(minorUnits % 100)
-  return `${whole}.${cents.toString().padStart(2, '0')}`
+  const isNegative = minorUnits < 0
+  const absolute = Math.abs(minorUnits)
+  const whole = Math.trunc(absolute / 100)
+  const cents = absolute % 100
+  return `${isNegative ? '-' : ''}${whole}.${cents.toString().padStart(2, '0')}`
 }

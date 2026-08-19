@@ -65,6 +65,18 @@ describe('ExpenseForm', () => {
     expect(screen.getByRole('button', { name: 'Add expense' })).toBeDisabled()
   })
 
+  it('shows an inline error once the date field is touched and left empty', async () => {
+    const user = userEvent.setup()
+    render(<ExpenseForm onAdd={vi.fn()} />)
+
+    expect(screen.queryByText('Date is required')).not.toBeInTheDocument()
+
+    await user.click(screen.getByLabelText('Date'))
+    await user.tab()
+
+    expect(screen.getByText('Date is required')).toBeInTheDocument()
+  })
+
   it('blocks submit while no category is selected', async () => {
     const user = userEvent.setup()
     render(<ExpenseForm onAdd={vi.fn()} />)

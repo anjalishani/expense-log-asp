@@ -26,6 +26,11 @@ describe('parseAmountToMinorUnits', () => {
     const result = parseAmountToMinorUnits('-5')
     expect(result.ok).toBe(false)
   })
+
+  it('rejects a negative amount with a zero whole part', () => {
+    const result = parseAmountToMinorUnits('-0.50')
+    expect(result.ok).toBe(false)
+  })
 })
 
 describe('formatMinorUnits', () => {
@@ -35,6 +40,10 @@ describe('formatMinorUnits', () => {
 
   it('pads a single-digit cent value', () => {
     expect(formatMinorUnits(1205)).toBe('12.05')
+  })
+
+  it('keeps the sign for a negative amount with a zero whole part', () => {
+    expect(formatMinorUnits(-50)).toBe('-0.50')
   })
 
   it('round-trips through parse and format', () => {

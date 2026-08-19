@@ -6,8 +6,8 @@ with totals per category, set a monthly limit, and get warned when you pass it.
 Everything runs in your browser. There is no backend, no database, and no account — your data
 never leaves your machine.
 
-> **Status:** scaffolded, no features yet. The app currently renders a placeholder. Features
-> arrive with [epics 2–4](doc/backlog.md); progress is tracked in
+> **Status:** in progress. The add-expense flow ([epic 2](doc/backlog.md)) has landed; month
+> view, budgets, and persistence are still to come. Progress is tracked in
 > [issues](https://github.com/anjalishani/expense-log-asp/issues).
 
 ## Requirements
@@ -43,11 +43,11 @@ using 5173 and try again.
 | `npm run build` | Typecheck, then build to `dist/` |
 | `npm run typecheck` | Typecheck only (`tsc -b`) |
 | `npm run preview` | Serve the built `dist/` locally |
+| `npm run test` | Run unit and component tests (Vitest + jsdom) |
 
-There is **no test command yet.** Vitest and Playwright arrive with issues
-[#7](https://github.com/anjalishani/expense-log-asp/issues/7) and
-[#8](https://github.com/anjalishani/expense-log-asp/issues/8); this table gets a row each when
-they land.
+There is **no end-to-end test command yet.** Playwright arrives with issue
+[#8](https://github.com/anjalishani/expense-log-asp/issues/8); this table gets a row when it
+lands.
 
 ## How it's built
 
