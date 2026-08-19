@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { categoryTotals, expensesInMonth } from './expenses'
 import { expense } from '../test/fixtures'
+import type { Category } from './types'
 
 describe('expensesInMonth', () => {
   it('excludes expenses from other months', () => {
@@ -82,5 +83,23 @@ describe('categoryTotals', () => {
 
   it('returns an empty array when there are no expenses', () => {
     expect(categoryTotals([])).toEqual([])
+  })
+
+  it('keeps spend from a category outside the fixed list instead of dropping it', () => {
+    // Simulates legacy/corrupted data (e.g. a category renamed after being
+    // persisted) reaching this function with a value CATEGORIES no longer
+    // lists. It must never be silently excluded from the totals — that would
+    // understate spend with no indication anything was dropped.
+    const legacyCategory = 'Subscriptions' as Category
+
+    const result = categoryTotals([
+      expense({ category: 'Groceries', amount: 100 }),
+      expense({ category: legacyCategory, amount: 500 }),
+    ])
+
+    expect(result).toEqual([
+      { category: 'Groceries', total: 100 },
+      { category: legacyCategory, total: 500 },
+    ])
   })
 })
