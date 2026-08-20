@@ -51,7 +51,7 @@ export function BudgetSummary({ limit, spent, onSetLimit }: Props) {
         Set limit
       </button>
       {limit === undefined ? (
-        <p>No limit set.</p>
+        <p data-testid="no-limit">No limit set.</p>
       ) : (
         <p data-testid="remaining">Remaining: {formatMinorUnits(limit - spent)}</p>
       )}

@@ -10,7 +10,7 @@ export function CategoryTotals({ expenses }: Props) {
   const totals = categoryTotals(expenses)
 
   if (totals.length === 0) {
-    return <p>No spending this month.</p>
+    return <p data-testid="no-spending">No spending this month.</p>
   }
 
   return (

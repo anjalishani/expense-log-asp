@@ -9,6 +9,11 @@ describe('MonthNavigator', () => {
     expect(screen.getByText('August 2026')).toBeInTheDocument()
   })
 
+  it('exposes the selected month label under a stable test id', () => {
+    render(<MonthNavigator month="2026-08" onChange={vi.fn()} />)
+    expect(screen.getByTestId('current-month')).toHaveTextContent('August 2026')
+  })
+
   it('moves to the next month when Next is clicked', async () => {
     const user = userEvent.setup()
     const onChange = vi.fn()
