@@ -6,7 +6,7 @@ import { expense } from '../test/fixtures'
 describe('CategoryTotals', () => {
   it('shows an empty state when there are no expenses', () => {
     render(<CategoryTotals expenses={[]} />)
-    expect(screen.getByText('No spending this month.')).toBeInTheDocument()
+    expect(screen.getByTestId('no-spending')).toHaveTextContent('No spending this month.')
   })
 
   it('shows one row per category with a non-zero total', () => {

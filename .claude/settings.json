@@ -46,5 +46,19 @@
       "Read(./.env)",
       "Read(./.env.*)"
     ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node -e \"let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>{const f=JSON.parse(d).tool_input.file_path||'';if(/\\.tsx?$/.test(f)){const r=require('child_process').spawnSync('npm',['run','--silent','typecheck'],{stdio:'inherit',shell:true});process.exit(r.status===0?0:2);}});\"",
+            "statusMessage": "Type-checking..."
+          }
+        ]
+      }
+    ]
   }
 }

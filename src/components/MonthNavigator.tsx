@@ -12,7 +12,7 @@ export function MonthNavigator({ month, onChange }: Props) {
       <button type="button" onClick={() => onChange(previousMonth(month))}>
         Previous
       </button>
-      <span>{formatMonthLabel(month)}</span>
+      <span data-testid="current-month">{formatMonthLabel(month)}</span>
       <button type="button" onClick={() => onChange(nextMonth(month))}>
         Next
       </button>

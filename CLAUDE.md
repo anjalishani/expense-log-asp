@@ -78,23 +78,30 @@ Both `ExpenseList` and `CategoryTotals` render an `<ul>`, disambiguated for test
 once both are non-empty. `CategoryTotals` also renders a month total (sum of the category
 rows) under `data-testid="month-total"`, and each category row carries
 `data-testid="category-total-<category>"` — both are the stable E2E hooks the design spec
-calls for (spec §7). Shared test fixtures (the `expense()` builder) live in
-`src/test/fixtures.ts`.
+calls for (spec §7). `MonthNavigator`'s month label carries `data-testid="current-month"` for
+the same reason, as do the three empty-state messages: `ExpenseList`'s "No expenses this
+month." (`no-expenses`), `CategoryTotals`' "No spending this month." (`no-spending`), and
+`BudgetSummary`'s "No limit set." (`no-limit`) — added after e2e specs were caught asserting
+on that visible copy directly, which `.claude/skills/expense-log-conventions/SKILL.md`
+forbids. Shared test fixtures (the `expense()` builder) live in `src/test/fixtures.ts`.
 
 **Vitest is wired** (`npm run test`, jsdom + React Testing Library, config in
 `vitest.config.ts` / `src/test/setup.ts`). **Playwright is wired** (`npm run test:e2e`,
 config in `playwright.config.ts`, specs in `e2e/`) — its `webServer` starts the Vite dev
 server automatically.
 
-Besides the harness smoke test, `e2e/add-expense.spec.ts` (#26) and
-`e2e/budget-limit-boundary.spec.ts` (#27) are written. Both deviate from their backlog wording
-in one deliberate way: the acceptance criteria call for seeding `localStorage` via
-`addInitScript`, but `src/storage/` is still empty (persistence is epic 4, not built), so there
-is nothing yet that reads seeded storage back. Setup instead goes through the real UI — filling
-the form, setting the limit — and `page.clock.setFixedTime()` pins "today" so the tests don't
-depend on the real date. `e2e/helpers.ts` holds the shared `addExpense`/`setMonthlyLimit`
-steps. Note `getByLabel('Category')` is ambiguous once `CategoryTotals`' `aria-label="Category
-totals"` list exists — the helper uses `getByRole('combobox', { name: 'Category' })` instead.
+Besides the harness smoke test, `e2e/add-expense.spec.ts` (#26), `e2e/budget-limit-boundary.spec.ts`
+(#27), and `e2e/month-navigation.spec.ts` (#14) are written. All three deviate from the backlog's
+`addInitScript`/`localStorage`-seeding wording in the same deliberate way: `src/storage/` is
+still empty (persistence is epic 4, not built), so there is nothing yet that reads seeded
+storage back. Setup instead goes through the real UI — filling the form, setting the limit,
+clicking Next/Previous — and `page.clock.setFixedTime()` pins "today" so the tests don't depend
+on the real date. `e2e/helpers.ts` holds the shared `addExpense`/`setMonthlyLimit` steps. Note
+`getByLabel('Category')` is ambiguous once `CategoryTotals`' `aria-label="Category totals"` list
+exists — the helper uses `getByRole('combobox', { name: 'Category' })` instead.
+`month-navigation.spec.ts` also exercises carry-forward (#17) incidentally: navigating forward
+from a month with a set limit into one with none shows the limit still carried forward, not
+"No limit set." — that's expected, not a bug in the test.
 
 Work is tracked as **GitHub issues**, not Jira: issues #1–#5 are the epics, #6–#30 the
 stories, linked as native sub-issues. Every story in `doc/backlog.md` carries its issue

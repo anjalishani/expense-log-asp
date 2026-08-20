@@ -134,7 +134,7 @@ describe('BudgetSummary', () => {
 
   it('replaces the remaining figure with a "no limit set" message when there is no resolved limit', () => {
     render(<BudgetSummary limit={undefined} onSetLimit={vi.fn()} spent={5000} />)
-    expect(screen.getByText('No limit set.')).toBeInTheDocument()
+    expect(screen.getByTestId('no-limit')).toHaveTextContent('No limit set.')
     expect(screen.queryByTestId('remaining')).not.toBeInTheDocument()
   })
 

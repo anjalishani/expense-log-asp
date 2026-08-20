@@ -16,8 +16,8 @@ test('adds an expense to the current month and moves the list, totals, and remai
 
   await setMonthlyLimit(page, '500')
 
-  await expect(page.getByText('No expenses this month.')).toBeVisible()
-  await expect(page.getByText('No spending this month.')).toBeVisible()
+  await expect(page.getByTestId('no-expenses')).toBeVisible()
+  await expect(page.getByTestId('no-spending')).toBeVisible()
   await expect(page.getByTestId('remaining')).toHaveText('Remaining: 500.00')
 
   await addExpense(page, '2026-06-15', '42.50', 'Groceries')

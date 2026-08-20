@@ -7,7 +7,7 @@ type Props = {
 
 export function ExpenseList({ expenses }: Props) {
   if (expenses.length === 0) {
-    return <p>No expenses this month.</p>
+    return <p data-testid="no-expenses">No expenses this month.</p>
   }
 
   return (
