@@ -6,7 +6,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 story #8), per-category totals (story #15), setting a monthly limit (story #16), carry-forward
 limit resolution (story #17), the remaining-budget display (story #18), the over-limit warning
 (story #19, closing epic 3), the add-expense/budget-boundary Playwright suites (stories
-#26–#27), and unit-test coverage for the domain and reducer (story #25, epic 5) landed.
+#26–#27), unit-test coverage for the domain and reducer (story #25, epic 5), and epic 4 —
+persist to `localStorage` (#20), seed data (#21), corrupt-data recovery (#22), and clear all
+data (#24) — landed. Story 4.4 "work without storage" (#23) was cut from scope under time
+pressure rather than built; see `doc/backlog.md` and ADR 0001 decision 11.
 Keep this current as the project moves; a stale CLAUDE.md is worse than none.
 
 ## What this project is
@@ -40,7 +43,7 @@ filtering/sorting the list and summing per-category spend for the selected month
 `domain/month.ts` (`nextMonth`/`previousMonth`) for unbounded month navigation across year
 boundaries. `state/currentMonth.ts` only supplies the initial `selectedMonth` when the reducer
 is created; navigation itself is reducer state now, not a fresh clock read on every render.
-State is in-memory only — persistence is epic 4, not built yet. `src/storage/` is still empty.
+State now persists to `localStorage` (epic 4, below) rather than living only in memory.
 
 `BudgetSummary` sets an **explicit** limit for the exact viewed month via `SET_LIMIT`, but its
 displayed/pre-filled value comes from `domain/limits.ts`'s `resolveLimit(limits, month)` (story
@@ -95,32 +98,58 @@ Story #25 (issue #25, epic 5, "Quality and delivery") audited unit-test coverage
 seven acceptance criteria. Three were already fully covered by tests written during #11–#19:
 carry-forward (explicit/inherited/gap/none) and the exactly-at-limit boundary, both in
 `src/domain/limits.test.ts`; and money parse/format round-trips in `src/domain/money.test.ts`.
-A fourth AC — every reducer action covered, including `CLEAR_ALL` — is covered only for every
-*existing* action (`ADD_EXPENSE`/`SELECT_MONTH`/`SET_LIMIT`, all in `src/state/reducer.test.ts`);
-`CLEAR_ALL` itself doesn't exist yet, so that AC is genuinely split between done and not done,
-not double-counted as both. One real gap was closed: `src/domain/expenses.test.ts` gained
-"separates adjacent months when they straddle a year boundary", covering `expensesInMonth` with
-expenses on either side of a Dec 31/Jan 1 boundary. The remaining two ACs — clear-then-rehydrate
-yielding empty state rather than seed data, and schema validation for corrupt/wrong-version
-input — plus `CLEAR_ALL` reducer coverage above, were deliberately deferred rather than built,
-since they depend on epic 4 (persistence, issues #20–#24), which hasn't landed: `src/storage/`
-is still empty, there is no `CLEAR_ALL` action, no seed data, no schema to validate against.
-That deferral is recorded as a comment on issue #25 and in
-`doc/superpowers/plans/2026-08-20-unit-test-domain-and-reducer.md`; #25 will need a follow-up
-once #20–#24 land rather than being fully closed by this branch.
+One real gap was closed at the time: `src/domain/expenses.test.ts` gained "separates adjacent
+months when they straddle a year boundary". The remaining three ACs — every reducer action
+including `CLEAR_ALL`, clear-then-rehydrate yielding empty state rather than seed data, and
+schema validation for corrupt/wrong-version input — were deferred pending epic 4, per a comment
+on issue #25 and `doc/superpowers/plans/2026-08-20-unit-test-domain-and-reducer.md`. That
+follow-up is now done: `CLEAR_ALL` is covered in `src/state/reducer.test.ts`, corrupt/
+wrong-version input is covered in `src/domain/schema.test.ts`, and clear-then-rehydrate is
+covered at both the storage level (`src/storage/localStorage.test.ts`, "returns the empty state
+written by clear-all rather than reseeding") and the component level (`App.test.tsx`, "stays
+empty after clearing and a fresh mount, rather than re-seeding").
+
+**Epic 4 — persistence (issues #20, #21, #22, #24; #23 cut, see above).** `src/storage/
+localStorage.ts` is the only module touching `localStorage`, under the versioned key
+`expense-log:v1`. Its `load(today)` is read-only — it never writes — and returns `{ state,
+wasCorrupt }`: seed data (from the new `domain/seed.ts`, story #21) when the key is absent,
+the parsed contents when `domain/schema.ts`'s `parseStoredState()` accepts them, or seed data
+again with `wasCorrupt: true` when the key holds unparsable JSON or fails schema validation
+(story #22). `save(state)` unconditionally overwrites the key — including with an empty
+envelope, never deleting it, which is what makes `CLEAR_ALL` (the reducer's fourth action,
+dispatched by the new `ClearDataButton` behind a `window.confirm`) stick rather than
+re-seeding on the next load. `App.tsx` calls `load()` exactly once per mount via a lazy
+`useState`, feeds its `state` into `useReducer`'s lazy initializer, and persists on every
+subsequent `expenses`/`limits` change via a `useEffect` — that same effect's first run, right
+after mount, is what actually writes seed/recovered data back under the key the first time,
+rather than `load()` doing it itself. A `StorageRecoveryNotice` (`data-testid=
+"storage-recovery-notice"`, dismissible) shows only when `wasCorrupt` was true on load.
+`domain/seed.ts`'s `createSeedState(today)` is pure and takes "today" as a string rather than
+calling `new Date()` itself, so it stays unit-testable without faking the clock; the ten
+current-month lines are hand-picked to total exactly €1,180.00 against the seeded €1,500.00
+limit, with `Rent` absorbing the remainder rather than the total being back-computed from
+round-per-line figures.
 
 Besides the harness smoke test, `e2e/add-expense.spec.ts` (#26), `e2e/budget-limit-boundary.spec.ts`
-(#27), and `e2e/month-navigation.spec.ts` (#14) are written. All three deviate from the backlog's
-`addInitScript`/`localStorage`-seeding wording in the same deliberate way: `src/storage/` is
-still empty (persistence is epic 4, not built), so there is nothing yet that reads seeded
-storage back. Setup instead goes through the real UI — filling the form, setting the limit,
-clicking Next/Previous — and `page.clock.setFixedTime()` pins "today" so the tests don't depend
-on the real date. `e2e/helpers.ts` holds the shared `addExpense`/`setMonthlyLimit` steps. Note
-`getByLabel('Category')` is ambiguous once `CategoryTotals`' `aria-label="Category totals"` list
-exists — the helper uses `getByRole('combobox', { name: 'Category' })` instead.
-`month-navigation.spec.ts` also exercises carry-forward (#17) incidentally: navigating forward
-from a month with a set limit into one with none shows the limit still carried forward, not
-"No limit set." — that's expected, not a bug in the test.
+(#27), `e2e/month-navigation.spec.ts` (#14), and now `e2e/persistence.spec.ts` (#20/#24) are
+written. Now that epic 4 has landed, all seed `localStorage` via `addInitScript` before page
+load, per the backlog's original wording — `e2e/helpers.ts`'s `seedEmptyStorage()` writes an
+empty envelope so tests get a deterministic blank slate instead of story #21's real seed data.
+It only writes when the key is still absent: `addInitScript` re-runs on every navigation in a
+page, including a test's own `page.reload()`, so writing unconditionally would silently wipe
+out whatever the app had just persisted the moment a persistence test reloaded. `page.clock.
+setFixedTime()` still pins "today" so tests stay independent of the real date. `e2e/helpers.ts`
+also holds the shared `addExpense`/`setMonthlyLimit` steps. Note `getByLabel('Category')` is
+ambiguous once `CategoryTotals`' `aria-label="Category totals"` list has rows — the helper uses
+`getByRole('combobox', { name: 'Category' })` instead, and so does `smoke.spec.ts` now that a
+genuinely-unseeded load (one that skips `seedEmptyStorage()`) shows real seed data with
+non-empty category totals. `month-navigation.spec.ts` also exercises carry-forward (#17)
+incidentally: navigating forward from a month with a set limit into one with none shows the
+limit still carried forward, not "No limit set." — that's expected, not a bug in the test.
+
+`vitest.config.ts` excludes `.claude/worktrees/**` in addition to `e2e/**`: a locked leftover
+git worktree from an earlier background subagent run (already-merged story #25) was otherwise
+being crawled as a second, stale copy of the whole test suite.
 
 Work is tracked as **GitHub issues**, not Jira: issues #1–#5 are the epics, #6–#30 the
 stories, linked as native sub-issues. Every story in `doc/backlog.md` carries its issue

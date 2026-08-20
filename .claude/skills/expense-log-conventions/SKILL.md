@@ -43,11 +43,12 @@ await expect(page.getByTestId('remaining')).toHaveText('Remaining: 457.50')
 - **Never** drive a manual or visible browser — Playwright MCP browser
   tools, `claude-in-chrome`, or a hand-opened tab — to *verify a test
   result*, and never treat a screenshot from one as evidence a behavior
-  works. The app has no backend and no persistence yet
-  (`src/storage/` is empty), so its only state boundary is the browser tab
-  itself; a manual browser can share or collide with another live session
-  on the same dev server (human or agent) with zero isolation, silently
-  corrupting whatever you're trying to observe.
+  works. The app has no backend, and its only state boundary is
+  `localStorage` in the browser tab; a manual browser can share or collide
+  with another live session on the same dev server (human or agent) with
+  zero isolation, silently corrupting whatever you're trying to observe —
+  now doubly so since epic 4 landed real persistence, so a stray manual
+  session can leave behind saved state a later automated run then inherits.
 - Manually driving a browser (e.g. via the `run` skill) is fine for
   one-off exploratory checks ("does this look right") — it is never a
   substitute for, or verification of, an automated test assertion.

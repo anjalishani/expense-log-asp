@@ -6,8 +6,9 @@ with totals per category, set a monthly limit, and get warned when you pass it.
 Everything runs in your browser. There is no backend, no database, and no account — your data
 never leaves your machine.
 
-> **Status:** in progress. The add-expense flow ([epic 2](doc/backlog.md)) has landed; month
-> view, budgets, and persistence are still to come. Progress is tracked in
+> **Status:** feature-complete. Expense capture, the month view, budget limits and warnings,
+> and persistence ([epics 1–4](doc/backlog.md)) have all landed; remaining work is delivery
+> artifacts (epic 5). Progress is tracked in
 > [issues](https://github.com/anjalishani/expense-log-asp/issues).
 
 ## Requirements
@@ -49,9 +50,9 @@ using 5173 and try again.
 `npm run test:e2e` starts the dev server itself (`webServer` in `playwright.config.ts`) and
 waits for it to come up, so there's nothing to start by hand first — though it'll reuse an
 already-running `npm run dev` on port 5173 if you have one open. Run a single test with
-`npx playwright test <file> -g "<title>"`. The suite lives in `e2e/`; the only spec so far
-is a harness smoke test — it doesn't cover the add-expense or budget-limit journeys, which
-are separate backlog stories.
+`npx playwright test <file> -g "<title>"`. The suite lives in `e2e/`: a harness smoke test,
+the add-expense and budget-limit-boundary journeys, month navigation, and persistence
+(reload survival, clear-all).
 
 ## How it's built
 
@@ -61,9 +62,9 @@ The source is three layers, and the boundaries are load-bearing rather than deco
 
 | Folder | Contains | Rule |
 |---|---|---|
-| `src/domain/` | Types, money helpers, expense selectors, budget rules | Pure TypeScript. Imports nothing from React, storage, or the browser |
-| `src/storage/` | Load, save, clear, schema validation, seed data | The **only** code permitted to touch `localStorage` |
-| `src/state/` | Reducer and React context | Hydrates from storage, persists on change |
+| `src/domain/` | Types, money helpers, expense selectors, budget rules, schema validation, seed data | Pure TypeScript. Imports nothing from React, storage, or the browser |
+| `src/storage/` | `load`/`save` | The **only** code permitted to touch `localStorage`. There's no separate `clear` — clearing is `save()` with an empty state, dispatched like any other reducer action |
+| `src/state/` | Reducer | `App.tsx` hydrates from `storage.load()` once per mount and persists on every change |
 | `src/components/` | UI | Presentational; derived values are computed, never stored |
 
 Keeping `domain/` React-free is what makes the budget rule testable by calling a function

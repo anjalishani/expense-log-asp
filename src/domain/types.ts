@@ -20,3 +20,9 @@ export type Expense = {
 export type Limits = Record<MonthKey, number> // minor units
 
 export type BudgetStatus = 'no-limit' | 'under' | 'over'
+
+export type StoredState = {
+  version: 1
+  expenses: Expense[]
+  limits: Limits
+}
