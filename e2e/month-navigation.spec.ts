@@ -1,14 +1,16 @@
 import { test, expect } from '@playwright/test'
-import { addExpense, setMonthlyLimit } from './helpers'
+import { addExpense, seedEmptyStorage, setMonthlyLimit } from './helpers'
 
-// Backlog story 2.4 / issue #14. As in the other e2e suites, setup goes
-// through the UI with a frozen clock rather than localStorage seeding —
-// there's no persistence layer yet (epic 4).
+// Backlog story 2.4 / issue #14. As in the other e2e suites, setup seeds an
+// empty localStorage envelope via addInitScript rather than relying on the
+// real seed data (story #21), with a frozen clock so month arithmetic is
+// independent of the real date too.
 
 test('Next/Previous move unboundedly, cross a year boundary, and the list/totals/limit follow the selected month', async ({
   page,
 }) => {
   await page.clock.setFixedTime(new Date('2026-12-15T09:00:00'))
+  await seedEmptyStorage(page)
   await page.goto('/')
 
   await expect(page.getByTestId('current-month')).toHaveText('December 2026')

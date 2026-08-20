@@ -10,6 +10,7 @@ export type Action =
   | { type: 'ADD_EXPENSE'; expense: Expense }
   | { type: 'SELECT_MONTH'; month: MonthKey }
   | { type: 'SET_LIMIT'; month: MonthKey; amount: number }
+  | { type: 'CLEAR_ALL' }
 
 export function reducer(state: ExpenseState, action: Action): ExpenseState {
   switch (action.type) {
@@ -26,5 +27,7 @@ export function reducer(state: ExpenseState, action: Action): ExpenseState {
       return { ...state, selectedMonth: action.month }
     case 'SET_LIMIT':
       return { ...state, limits: { ...state.limits, [action.month]: action.amount } }
+    case 'CLEAR_ALL':
+      return { ...state, expenses: [], limits: {} }
   }
 }
