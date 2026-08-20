@@ -33,6 +33,14 @@
     Reads Claude Code's internal .jsonl transcript format directly - that format is
     undocumented and can change between Claude Code versions. If exports look empty or
     malformed after a Claude Code update, this script may need adjusting.
+
+    Redacts the local git identity and Windows/Azure AD username before writing, since
+    these transcripts routinely embed both (e.g. an `ls -la` tool result showing file
+    ownership as "AzureAD+someuser", or a `git log` result showing a personal email) and
+    are meant to be committed to a repo — this was caught in PR #50 review after both leaked
+    into every exported transcript. Redaction is local-identity-based, not a blanket email
+    regex, so it doesn't also mangle an unrelated example.com address quoted in the
+    conversation.
 #>
 [CmdletBinding()]
 param(
@@ -56,6 +64,55 @@ function Get-TruncatedText {
     if ($null -eq $Text) { return '' }
     if ($Text.Length -le $MaxLength) { return $Text }
     return $Text.Substring(0, $MaxLength) + "`n... (truncated, $($Text.Length - $MaxLength) more characters)"
+}
+
+function Get-RedactionMap {
+    # Ordered so the compound "DOMAIN+username" / "DOMAIN\username" forms are
+    # replaced before the bare username, which is deliberately NOT redacted on
+    # its own — it's often short enough to collide with unrelated words in the
+    # conversation, unlike the more distinctive identifiers below.
+    $map = [ordered]@{}
+
+    $gitEmail = git config --get user.email 2>$null
+    if ($gitEmail) { $map[$gitEmail] = '[redacted-email]' }
+
+    $gitName = git config --get user.name 2>$null
+    if ($gitName) { $map[$gitName] = '[redacted-name]' }
+
+    # When user.name/user.email are unset, git still commits under an identity
+    # it auto-derives from the OS account (e.g. a corporate email discovered
+    # via the machine's directory join) — `git config --get` returns nothing
+    # for that case, but `git var GIT_AUTHOR_IDENT` reveals what git actually
+    # used. This is what caught the real leak in PR #50 review: this repo has
+    # no configured user.email, so the config-only check above missed it.
+    $authorIdent = git var GIT_AUTHOR_IDENT 2>$null
+    if ($authorIdent -match '^(?<name>.*?)\s*<(?<email>[^>]+)>') {
+        if ($Matches.email) { $map[$Matches.email] = '[redacted-email]' }
+        if ($Matches.name) { $map[$Matches.name] = '[redacted-name]' }
+    }
+
+    if ($env:USERDOMAIN -and $env:USERNAME) {
+        $map["$env:USERDOMAIN+$env:USERNAME"] = '[redacted-user]'
+        $map["$env:USERDOMAIN\$env:USERNAME"] = '[redacted-user]'
+    }
+
+    if ($env:USERPROFILE) { $map[$env:USERPROFILE] = '%USERPROFILE%' }
+
+    return $map
+}
+
+function Protect-Text {
+    param(
+        [string]$Text,
+        [System.Collections.Specialized.OrderedDictionary]$RedactionMap
+    )
+    if ([string]::IsNullOrEmpty($Text)) { return $Text }
+    $result = $Text
+    foreach ($key in $RedactionMap.Keys) {
+        if ([string]::IsNullOrEmpty($key)) { continue }
+        $result = $result.Replace($key, $RedactionMap[$key])
+    }
+    return $result
 }
 
 function ConvertTo-RenderedText {
@@ -94,6 +151,8 @@ if (-not $sessionFiles) {
 if (-not (Test-Path -LiteralPath $OutputDir)) {
     New-Item -ItemType Directory -Path $OutputDir -Force | Out-Null
 }
+
+$redactionMap = Get-RedactionMap
 
 foreach ($file in $sessionFiles) {
     # Read as UTF-8 explicitly: Windows PowerShell's Get-Content otherwise falls back to the
@@ -188,9 +247,10 @@ foreach ($file in $sessionFiles) {
 
     $stamp = try { ([datetimeoffset]$startedAt).ToString('yyyyMMdd-HHmmss') } catch { $file.LastWriteTime.ToString('yyyyMMdd-HHmmss') }
     $outFile = Join-Path $OutputDir "$stamp-$sessionId.md"
+    $redacted = Protect-Text -Text $md.ToString() -RedactionMap $redactionMap
     # Write UTF-8 without a BOM: Set-Content -Encoding utf8 on Windows PowerShell adds one,
     # which some Markdown renderers show as a stray character at the top of the file.
     $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
-    [System.IO.File]::WriteAllText([System.IO.Path]::GetFullPath($outFile), $md.ToString(), $utf8NoBom)
+    [System.IO.File]::WriteAllText([System.IO.Path]::GetFullPath($outFile), $redacted, $utf8NoBom)
     Write-Host "Wrote $outFile"
 }
