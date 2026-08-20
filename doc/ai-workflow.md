@@ -72,7 +72,7 @@ well-known public ones — and to write your own only when nothing fits.
 | Skill | Where | Why |
 |---|---|---|
 | `superpowers:brainstorming` | Turning `doc/requirement.md` into the design spec | The brief is deliberately incomplete. This skill's architectural path forces the open questions to the surface one at a time, proposes alternatives with trade-offs, and ends in a written, approved spec. That spec then fed both the backlog and the GitHub issues. |
-| `code-review` | PRs #31 and #33, with `--comment` | Posts findings as inline PR comments rather than a chat summary, which is what leaves reviewable evidence on a public repo. It found a real erasure bug in #31 and five configuration defects in #33. |
+| `code-review` | Every PR since, starting with #31 and #33, with `--comment` | Posts findings as inline PR comments rather than a chat summary, which is what leaves reviewable evidence on a public repo. It found a real erasure bug in #31, five configuration defects in #33, and kept catching real issues later — e.g. PR #47 (story #19), where its comment led to a follow-up commit reusing `BudgetStatus` instead of a second inline check. |
 | Playwright MCP browser tools | Verifying the scaffold in #33 | Story #6 required "renders without console errors". A passing build doesn't prove that. Loading the page in a real browser caught a favicon 404 that `npm run build` was perfectly happy with. |
 
 ### Considered and not used
@@ -118,21 +118,27 @@ task — the acceptance criteria were already written.
 
 ### Sessions
 
-All work so far has happened in **one continuous session**, from reading the requirement
-through to merging the scaffold. Nothing has been restarted.
+The initial design-and-scaffold work (through PR #33) happened in one continuous session, and
+that section's original claim stood at the time: nothing had been restarted, and neither
+`/clear` nor `/compact` had been needed.
 
-**Neither `/clear` nor `/compact` has been used.** Stating that plainly rather than inventing
-a reason to have used one: the context has held everything from the requirement through three
-merged PRs without pressure. The natural point for a fresh session is a shift in the kind of
-work — moving from documentation and setup into feature implementation for Epic 2 — where the
-detailed history of settings and issue-seeding stops being useful and the spec plus CLAUDE.md
-carry everything that matters. The reason that works is that the durable context lives in
-files, not in the conversation.
+Since then the project has run across **multiple separate Claude Code sessions** — one per
+sitting, sometimes resumed mid-task via `/resume` — rather than one session kept alive for the
+whole build. That's a deliberate substitute for `/clear`/`/compact` within a session: instead of
+compacting a single long-running conversation, each new session starts genuinely fresh and
+reconstructs what it needs from **files, not conversation history** — `CLAUDE.md`'s "Current
+state" section (updated after every story), `doc/backlog.md`'s acceptance criteria, and `git
+log`. That's the reason the "Last updated" line and "Current state" paragraph in `CLAUDE.md` are
+maintained so deliberately: they're the actual persistence mechanism a fresh session reads
+before touching anything, standing in for conversation continuity `/compact` would otherwise
+preserve at reduced fidelity.
 
-The distinction between the two: `/compact` summarises the conversation and continues with
-that summary, keeping continuity at reduced fidelity. `/clear` discards it entirely and starts
-fresh. `/compact` suits a long task still in progress; `/clear` suits a clean boundary between
-unrelated pieces of work.
+Neither `/clear` nor `/compact` has been used **within** a session — none has run long enough to
+need it (the largest, per the exported logs in `doc/session-log/`, stayed well under the
+context window). The distinction between the two, for the record: `/compact` summarises the
+conversation and continues with that summary, keeping continuity at reduced fidelity; `/clear`
+discards it entirely and starts fresh. Both suit staying in one session; this project's pattern
+of short, focused sessions per story or per batch of stories made neither necessary.
 
 ### Subagents
 
