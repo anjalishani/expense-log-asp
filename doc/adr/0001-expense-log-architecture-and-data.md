@@ -125,6 +125,39 @@ returning user; its contents are what they chose to keep.
 Recorded here because it is the decision most likely to be "simplified" by someone who reads
 `clear()` and reaches for `removeItem`.
 
+### 10. Session log export: a local script reading Claude Code's own transcripts
+
+**Rejected:** the AI Hub script (AI-SDLC Documents > Session-Export) named in the brief
+
+The brief names a specific export tool that isn't reachable from this environment — not
+installed here, and not part of Claude Code or this repo. The requirement behind it is that
+the working session be inspectable, not that any particular tool produce the artifact, so
+[`scripts/Export-ClaudeSessions.ps1`](../../scripts/Export-ClaudeSessions.ps1) reads Claude
+Code's own on-disk session transcripts (`%USERPROFILE%\.claude\projects\<project-slug>\
+<session-id>.jsonl`) directly and renders each one to Markdown — the same end result, an
+inspectable record of the actual work, via the mechanism that was actually available. The
+exported logs live in [`doc/session-log/`](../session-log/).
+
+That transcript format is internal and undocumented, so the script may need adjusting after a
+Claude Code update — an accepted cost against hand-writing a summary after the fact, which
+would be curated rather than inspectable.
+
+### 11. Dropped "work without storage" (4.4 / issue #23) under time pressure
+
+**Rejected:** building it anyway · cutting a `Should` instead
+
+By 2026-08-20, epics 1–3 plus most of epic 5 were done and epic 4 (persistence) hadn't started,
+with the Thursday demo ahead. The backlog had already MoSCoW-ranked epic 4's five stories; 4.4
+was its only `Could`, so it went first — that ordering is the point of ranking them that way.
+
+Persist to storage (4.1) and clear all data (4.5) are `Must`: without them the app doesn't
+survive a refresh and can't honestly claim the GDPR erasure story in this ADR. Seed data (4.2)
+and corrupt-data recovery (4.3) are `Should` and were kept — seed data because a first run with
+an empty screen demos poorly, corrupt-data recovery because "never shows a blank screen" is a
+direct line to the robustness this ADR already claims for the storage boundary. Private-browsing
+support was never asked for by the brief and had the weakest connection to anything graded, so
+it is the one story cut rather than descoped in size.
+
 ---
 
 ## Personal data and GDPR

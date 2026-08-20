@@ -252,17 +252,6 @@ shows a blank screen.
 
 *Spec §8 · Issue #22*
 
-### 4.4 Work without storage — **Could**
-
-**As a** user in private browsing, **I want** the app to still work, **so that** disabled
-storage isn't a dead end.
-
-- Storage failures fall back to an in-memory adapter
-- A banner states that changes will not persist
-- All features remain usable for the session
-
-*Spec §8 · Issue #23*
-
 ### 4.5 Clear all data — **Must**
 
 **As a** user, **I want** to erase everything I've recorded, **so that** I control my own data.
@@ -380,3 +369,13 @@ spec §9.
 | Per-category limits | Never asked for by the requirement |
 | Income or refunds | Amounts are strictly positive; this is a log, not a ledger |
 | Any backend, database, or login | Excluded by the requirement, and the basis of the GDPR position |
+
+### Cut for time (were in scope, deliberately dropped later)
+
+The rest of this table was never planned. These two were — MoSCoW's own logic is to drop
+`Could` before `Should` before `Must` when a deadline bites, which is what happened here on
+2026-08-20 with epic 4 still ahead and the Thursday demo approaching.
+
+| Not building | Why |
+|---|---|
+| 4.4 Work without storage (was **Could**) | Lowest-priority story in the backlog; private-browsing support isn't part of the brief. *Issue #23* |
