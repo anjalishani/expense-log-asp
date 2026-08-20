@@ -8,15 +8,16 @@ on:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 concurrency:
   group: pages
   cancel-in-progress: true
 
 jobs:
-  checks:
+  # Checks and build share one job (and one checkout/npm ci) rather than
+  # duplicating setup across two jobs — a failing check stops the job before
+  # the build step ever runs, so this still gates the deploy on both passing.
+  build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -28,24 +29,23 @@ jobs:
       - run: npm run typecheck
       - run: npx playwright install --with-deps chromium
       - run: npm run test:e2e
-
-  deploy:
-    needs: checks
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-      - run: npm ci
       - run: npm run build
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    # Deploy-capable credentials scoped to only the job that needs them —
+    # the build job's dependency install and e2e run don't get them.
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
       - id: deployment
         uses: actions/deploy-pages@v4

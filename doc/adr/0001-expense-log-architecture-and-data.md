@@ -36,9 +36,10 @@ requires a running server, the loosest fit to "no backend". Plain JS was rejecte
 under-engineered for the state this app carries.
 
 `vite build` emits a static `dist/` — no server-side rendering, nothing to run at request
-time — which is what makes **GitHub Pages** a fit as the deploy target: it serves static files
-and nothing else, so hosting costs the project nothing beyond what the static-export choice
-already implied.
+time — which is what makes **GitHub Pages** a fit as the deploy target (**rejected:** Netlify,
+Vercel — both fine with a static export too, but add an external account and secrets a repo
+already on GitHub doesn't need): it serves static files and nothing else, so hosting costs the
+project nothing beyond what the static-export choice already implied.
 
 ### 2. Persist to `localStorage`
 
