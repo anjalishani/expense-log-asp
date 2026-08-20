@@ -6,7 +6,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 story #8), per-category totals (story #15), setting a monthly limit (story #16), carry-forward
 limit resolution (story #17), the remaining-budget display (story #18), the over-limit warning
 (story #19, closing epic 3), the add-expense/budget-boundary Playwright suites (stories
-#26–#27), and unit-test coverage for the domain and reducer (story #25, epic 5) landed.
+#26–#27), unit-test coverage for the domain and reducer (story #25, epic 5), and the
+GitHub Pages deploy pipeline (`.github/workflows/deploy.yml`) landed.
 Keep this current as the project moves; a stale CLAUDE.md is worse than none.
 
 ## What this project is
@@ -140,6 +141,11 @@ npm run typecheck
 npm run test     # vitest run — unit + component tests, jsdom
 npm run test:e2e # playwright test — starts the dev server itself, real Chromium
 ```
+
+`.github/workflows/deploy.yml` runs on every push to `main` — i.e. after a PR merge, not on
+every branch push or on `pull_request` events. It runs `npm run typecheck` and `npm run
+test:e2e` first; either failing blocks the deploy job entirely. Only once both pass does it
+`npm run build` and publish `dist/` to GitHub Pages via `actions/deploy-pages`.
 
 TypeScript uses project references: `tsconfig.app.json` covers `src/` with DOM libs,
 `tsconfig.node.json` covers `vite.config.ts` with Node types. Config files and app code have
