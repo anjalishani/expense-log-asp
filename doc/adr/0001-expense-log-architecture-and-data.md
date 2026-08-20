@@ -35,6 +35,12 @@ which matters when two E2E tests are a graded deliverable. ASP.NET MVC was rejec
 requires a running server, the loosest fit to "no backend". Plain JS was rejected as
 under-engineered for the state this app carries.
 
+`vite build` emits a static `dist/` — no server-side rendering, nothing to run at request
+time — which is what makes **GitHub Pages** a fit as the deploy target (**rejected:** Netlify,
+Vercel — both fine with a static export too, but add an external account and secrets a repo
+already on GitHub doesn't need): it serves static files and nothing else, so hosting costs the
+project nothing beyond what the static-export choice already implied.
+
 ### 2. Persist to `localStorage`
 
 **Rejected:** in-memory only · limit-only persistence

@@ -6,10 +6,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 story #8), per-category totals (story #15), setting a monthly limit (story #16), carry-forward
 limit resolution (story #17), the remaining-budget display (story #18), the over-limit warning
 (story #19, closing epic 3), the add-expense/budget-boundary Playwright suites (stories
-#26–#27), unit-test coverage for the domain and reducer (story #25, epic 5), and epic 4 —
+#26–#27), unit-test coverage for the domain and reducer (story #25, epic 5), epic 4 —
 persist to `localStorage` (#20), seed data (#21), corrupt-data recovery (#22), and clear all
-data (#24) — landed. Story 4.4 "work without storage" (#23) was cut from scope under time
-pressure rather than built; see `doc/backlog.md` and ADR 0001 decision 11.
+data (#24) — (story 4.4 "work without storage" / #23 cut from scope under time pressure
+rather than built; see `doc/backlog.md` and ADR 0001 decision 11), the GitHub Pages deploy
+pipeline (`.github/workflows/deploy.yml`), and Playwright issue tags on every `e2e/` spec
+landed.
 Keep this current as the project moves; a stale CLAUDE.md is worse than none.
 
 ## What this project is
@@ -151,6 +153,13 @@ limit still carried forward, not "No limit set." — that's expected, not a bug 
 git worktree from an earlier background subagent run (already-merged story #25) was otherwise
 being crawled as a second, stale copy of the whole test suite.
 
+Every `test(...)` in `e2e/` (including the two in `smoke.spec.ts`) carries a Playwright tag
+naming its GitHub issue — `{ tag: '@issue-26' }` and so on — as the second argument, alongside
+the existing "Backlog story X.X / issue #NN" header comment each spec file already had. The tag
+is what makes the link machine-readable: it shows in `npm run test:e2e`'s console/HTML output
+and is filterable via `--grep '@issue-26'`, where the header comment is prose only. Any new e2e
+spec should carry both.
+
 Work is tracked as **GitHub issues**, not Jira: issues #1–#5 are the epics, #6–#30 the
 stories, linked as native sub-issues. Every story in `doc/backlog.md` carries its issue
 number — keep the two in step when either changes.
@@ -169,6 +178,11 @@ npm run typecheck
 npm run test     # vitest run — unit + component tests, jsdom
 npm run test:e2e # playwright test — starts the dev server itself, real Chromium
 ```
+
+`.github/workflows/deploy.yml` runs on every push to `main` — i.e. after a PR merge, not on
+every branch push or on `pull_request` events. It runs `npm run typecheck` and `npm run
+test:e2e` first; either failing blocks the deploy job entirely. Only once both pass does it
+`npm run build` and publish `dist/` to GitHub Pages via `actions/deploy-pages`.
 
 TypeScript uses project references: `tsconfig.app.json` covers `src/` with DOM libs,
 `tsconfig.node.json` covers `vite.config.ts` with Node types. Config files and app code have
