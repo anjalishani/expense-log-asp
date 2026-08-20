@@ -5,8 +5,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 **Last updated:** 2026-08-19 — after month navigation (story #14), Playwright (PR #41,
 story #8), per-category totals (story #15), setting a monthly limit (story #16), carry-forward
 limit resolution (story #17), the remaining-budget display (story #18), the over-limit warning
-(story #19, closing epic 3), and the add-expense/budget-boundary Playwright suites (stories
-#26–#27) landed. Keep this current as the project moves; a stale CLAUDE.md is worse than none.
+(story #19, closing epic 3), the add-expense/budget-boundary Playwright suites (stories
+#26–#27), and unit-test coverage for the domain and reducer (story #25, opening epic 5) landed.
+Keep this current as the project moves; a stale CLAUDE.md is worse than none.
 
 ## What this project is
 
@@ -65,6 +66,22 @@ and no warning ("passed means over, not reached"). `budgetStatus` resolves the t
 `BudgetStatus` type declared back in `domain/types.ts` (#11/#12) that had gone unused until
 now; `BudgetSummary` is its first consumer, alongside its own separate `limit - spent`
 subtraction for the `remaining` figure — the two are independent, not the same check.
+
+Story #25 (issue #25, opening epic 5, "Quality and delivery") audited unit-test coverage
+against its seven acceptance criteria and found four already fully covered by tests written
+during #11–#19: carry-forward (explicit/inherited/gap/none) and the exactly-at-limit boundary,
+both in `src/domain/limits.test.ts`; money parse/format round-trips in `src/domain/money.test.ts`;
+and the reducer's three existing actions (`ADD_EXPENSE`/`SELECT_MONTH`/`SET_LIMIT`), all in
+`src/state/reducer.test.ts`. One real gap was closed: `src/domain/expenses.test.ts` gained
+"separates adjacent months when they straddle a year boundary", covering `expensesInMonth` with
+expenses on either side of a Dec 31/Jan 1 boundary. The remaining three ACs — `CLEAR_ALL`
+reducer coverage, clear-then-rehydrate yielding empty state rather than seed data, and schema
+validation for corrupt/wrong-version input — were deliberately deferred rather than built, since
+they depend on epic 4 (persistence, issues #20–#24), which hasn't landed: `src/storage/` is
+still empty, there is no `CLEAR_ALL` action, no seed data, no schema to validate against. That
+deferral is recorded as a comment on issue #25 and in
+`doc/superpowers/plans/2026-08-20-unit-test-domain-and-reducer.md`; #25 will need a follow-up
+once #20–#24 land rather than being fully closed by this branch.
 
 `BudgetSummary` also commits a valid value on blur, not only on explicit submit — `ADD_EXPENSE`
 can auto-switch `selectedMonth` (see above), which remounts `BudgetSummary` and would otherwise
