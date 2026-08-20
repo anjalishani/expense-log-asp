@@ -2,7 +2,7 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-**Last updated:** 2026-08-19 — after month navigation (story #14), Playwright (PR #41,
+**Last updated:** 2026-08-20 — after month navigation (story #14), Playwright (PR #41,
 story #8), per-category totals (story #15), setting a monthly limit (story #16), carry-forward
 limit resolution (story #17), the remaining-budget display (story #18), the over-limit warning
 (story #19, closing epic 3), the add-expense/budget-boundary Playwright suites (stories
