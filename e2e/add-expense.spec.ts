@@ -1,18 +1,18 @@
 import { test, expect } from '@playwright/test'
-import { addExpense, setMonthlyLimit } from './helpers'
+import { addExpense, seedEmptyStorage, setMonthlyLimit } from './helpers'
 
-// Backlog story 5.2 / issue #26. Its acceptance criteria call for seeding
-// localStorage via addInitScript, but there is no persistence layer yet
-// (src/storage/ is still empty — epic 4; see smoke.spec.ts). This test pins
-// "today" with Playwright's clock instead, so it's independent of the real
-// date, and drives setup through the UI — the only state entry point that
-// currently exists.
+// Backlog story 5.2 / issue #26, per its acceptance criteria: seeds
+// localStorage via addInitScript (now that epic 4 has landed a persistence
+// layer) with an empty envelope, so this is independent of both the real
+// seed data (story #21) and today's date, which is pinned via Playwright's
+// clock for the same reason.
 
 test(
   'adds an expense to the current month and moves the list, totals, and remaining budget by exactly that amount',
   { tag: '@issue-26' },
   async ({ page }) => {
     await page.clock.setFixedTime(new Date('2026-06-15T09:00:00'))
+    await seedEmptyStorage(page)
     await page.goto('/')
 
     await setMonthlyLimit(page, '500')

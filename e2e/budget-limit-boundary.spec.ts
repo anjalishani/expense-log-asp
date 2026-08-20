@@ -1,16 +1,16 @@
 import { test, expect } from '@playwright/test'
-import { addExpense, setMonthlyLimit } from './helpers'
+import { addExpense, seedEmptyStorage, setMonthlyLimit } from './helpers'
 
 // Backlog story 5.3 / issue #27, pinned against the over-limit warning built
-// for issue #19. As in add-expense.spec.ts, setup goes through the UI with a
-// frozen clock rather than localStorage seeding — there's no persistence
-// layer yet (epic 4).
+// for issue #19. As in add-expense.spec.ts, setup seeds an empty localStorage
+// envelope via addInitScript rather than relying on the real seed data.
 
 test(
   'remaining reads zero with no warning exactly at the limit, and the warning appears one minor unit over — passed means over, not reached',
   { tag: '@issue-27' },
   async ({ page }) => {
     await page.clock.setFixedTime(new Date('2026-06-15T09:00:00'))
+    await seedEmptyStorage(page)
     await page.goto('/')
 
     await setMonthlyLimit(page, '50.00')

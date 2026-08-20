@@ -1,9 +1,23 @@
-import { describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import App from './App'
 import { currentMonthKey } from './state/currentMonth'
 import { nextMonth } from './domain/month'
+import { STORAGE_KEY } from './storage/localStorage'
+
+// Every test below is about component wiring, not persistence itself, so each
+// starts from an explicit *empty* stored envelope rather than an absent key —
+// an absent key would trigger seeding (story #21) and throw off every
+// assertion here that expects a blank slate. Persistence and seeding get
+// their own tests further down, which manage localStorage themselves.
+beforeEach(() => {
+  window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ version: 1, expenses: [], limits: {} }))
+})
+
+afterEach(() => {
+  window.localStorage.clear()
+})
 
 function todayIsoDate(): string {
   // Single Date instant: currentMonthKey() would call `new Date()` again for
@@ -214,5 +228,109 @@ describe('App', () => {
     // Back on the original month, remaining must reflect its own spend again,
     // not the following month's.
     expect(screen.getByTestId('remaining')).toHaveTextContent('70.00')
+  })
+
+  describe('persistence', () => {
+    it('seeds example data on a genuinely first run (no stored key at all)', () => {
+      window.localStorage.clear() // undo the beforeEach's empty envelope
+      render(<App />)
+
+      // Seeded current-month spend is exactly €1,180.00 against a €1,500.00
+      // limit (spec §6), so remaining must read exactly €320.00.
+      expect(screen.getByTestId('remaining')).toHaveTextContent('320.00')
+    })
+
+    it('hydrates expenses and limits from previously saved storage', () => {
+      const today = todayIsoDate()
+      window.localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify({
+          version: 1,
+          expenses: [{ id: 'a', date: today, amount: 5000, category: 'Groceries' }],
+          limits: { [currentMonthKey()]: 10000 },
+        }),
+      )
+
+      render(<App />)
+
+      const list = within(screen.getByRole('list', { name: 'Expenses' }))
+      expect(list.getByText('50.00')).toBeInTheDocument()
+      expect(screen.getByTestId('remaining')).toHaveTextContent('50.00')
+    })
+
+    it('persists an added expense so it survives a fresh mount', async () => {
+      const user = userEvent.setup()
+      const today = todayIsoDate()
+      const { unmount } = render(<App />)
+
+      await addExpense(user, today, '12.34', 'Groceries')
+      unmount()
+
+      render(<App />)
+      const list = within(screen.getByRole('list', { name: 'Expenses' }))
+      expect(list.getByText('12.34')).toBeInTheDocument()
+    })
+
+    it('recovers with seed data and a dismissible notice when stored data is corrupt', async () => {
+      const user = userEvent.setup()
+      window.localStorage.setItem(STORAGE_KEY, '{not valid json')
+
+      render(<App />)
+
+      expect(screen.getByTestId('storage-recovery-notice')).toBeInTheDocument()
+      expect(screen.getByTestId('remaining')).toHaveTextContent('320.00')
+
+      await user.click(screen.getByRole('button', { name: 'Dismiss' }))
+      expect(screen.queryByTestId('storage-recovery-notice')).not.toBeInTheDocument()
+    })
+  })
+
+  describe('clear all data', () => {
+    afterEach(() => {
+      vi.restoreAllMocks()
+    })
+
+    it('clears expenses and limits once the confirmation is accepted', async () => {
+      const user = userEvent.setup()
+      vi.spyOn(window, 'confirm').mockReturnValue(true)
+      const today = todayIsoDate()
+      render(<App />)
+
+      await addExpense(user, today, '12.34', 'Groceries')
+      await user.type(screen.getByLabelText('Monthly limit'), '150')
+      await user.click(screen.getByRole('button', { name: 'Set limit' }))
+
+      await user.click(screen.getByRole('button', { name: 'Clear all data' }))
+
+      expect(screen.getByText('No expenses this month.')).toBeInTheDocument()
+      expect(screen.getByText('No limit set.')).toBeInTheDocument()
+    })
+
+    it('does not clear when the confirmation is declined', async () => {
+      const user = userEvent.setup()
+      vi.spyOn(window, 'confirm').mockReturnValue(false)
+      const today = todayIsoDate()
+      render(<App />)
+
+      await addExpense(user, today, '12.34', 'Groceries')
+      await user.click(screen.getByRole('button', { name: 'Clear all data' }))
+
+      const list = within(screen.getByRole('list', { name: 'Expenses' }))
+      expect(list.getByText('12.34')).toBeInTheDocument()
+    })
+
+    it('stays empty after clearing and a fresh mount, rather than re-seeding', async () => {
+      const user = userEvent.setup()
+      vi.spyOn(window, 'confirm').mockReturnValue(true)
+      window.localStorage.clear() // start from a genuine first run, seeded
+      const { unmount } = render(<App />)
+
+      await user.click(screen.getByRole('button', { name: 'Clear all data' }))
+      unmount()
+
+      render(<App />)
+      expect(screen.getByText('No expenses this month.')).toBeInTheDocument()
+      expect(screen.getByText('No limit set.')).toBeInTheDocument()
+    })
   })
 })

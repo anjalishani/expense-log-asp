@@ -7,6 +7,9 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],
     // e2e/ holds Playwright specs, run via `npm run test:e2e`, not Vitest.
-    exclude: [...configDefaults.exclude, 'e2e/**'],
+    // .claude/worktrees/** holds isolated git worktrees the Agent tool creates
+    // for background subagents — each is a full checkout with its own tests,
+    // which would otherwise run a second time (and, if stale, fail) here.
+    exclude: [...configDefaults.exclude, 'e2e/**', '.claude/worktrees/**'],
   },
 })

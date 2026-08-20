@@ -78,4 +78,32 @@ describe('reducer', () => {
     reducer(initial, { type: 'SET_LIMIT', month: '2026-08', amount: 150000 })
     expect(initial.limits).toEqual({})
   })
+
+  it('clears all expenses and limits', () => {
+    const initial: ExpenseState = {
+      expenses: [expense],
+      selectedMonth: '2026-08',
+      limits: { '2026-08': 150000 },
+    }
+    const next = reducer(initial, { type: 'CLEAR_ALL' })
+    expect(next.expenses).toEqual([])
+    expect(next.limits).toEqual({})
+  })
+
+  it('leaves the selected month unchanged when clearing', () => {
+    const initial: ExpenseState = { expenses: [], selectedMonth: '2026-08', limits: {} }
+    const next = reducer(initial, { type: 'CLEAR_ALL' })
+    expect(next.selectedMonth).toBe('2026-08')
+  })
+
+  it('does not mutate the previous state when clearing', () => {
+    const initial: ExpenseState = {
+      expenses: [expense],
+      selectedMonth: '2026-08',
+      limits: { '2026-08': 150000 },
+    }
+    reducer(initial, { type: 'CLEAR_ALL' })
+    expect(initial.expenses).toEqual([expense])
+    expect(initial.limits).toEqual({ '2026-08': 150000 })
+  })
 })
