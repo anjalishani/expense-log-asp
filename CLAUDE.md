@@ -2,11 +2,12 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-**Last updated:** 2026-08-19 — after month navigation (story #14), Playwright (PR #41,
+**Last updated:** 2026-08-20 — after month navigation (story #14), Playwright (PR #41,
 story #8), per-category totals (story #15), setting a monthly limit (story #16), carry-forward
 limit resolution (story #17), the remaining-budget display (story #18), the over-limit warning
-(story #19, closing epic 3), and the add-expense/budget-boundary Playwright suites (stories
-#26–#27) landed. Keep this current as the project moves; a stale CLAUDE.md is worse than none.
+(story #19, closing epic 3), the add-expense/budget-boundary Playwright suites (stories
+#26–#27), and unit-test coverage for the domain and reducer (story #25, epic 5) landed.
+Keep this current as the project moves; a stale CLAUDE.md is worse than none.
 
 ## What this project is
 
@@ -89,6 +90,24 @@ forbids. Shared test fixtures (the `expense()` builder) live in `src/test/fixtur
 `vitest.config.ts` / `src/test/setup.ts`). **Playwright is wired** (`npm run test:e2e`,
 config in `playwright.config.ts`, specs in `e2e/`) — its `webServer` starts the Vite dev
 server automatically.
+
+Story #25 (issue #25, epic 5, "Quality and delivery") audited unit-test coverage against its
+seven acceptance criteria. Three were already fully covered by tests written during #11–#19:
+carry-forward (explicit/inherited/gap/none) and the exactly-at-limit boundary, both in
+`src/domain/limits.test.ts`; and money parse/format round-trips in `src/domain/money.test.ts`.
+A fourth AC — every reducer action covered, including `CLEAR_ALL` — is covered only for every
+*existing* action (`ADD_EXPENSE`/`SELECT_MONTH`/`SET_LIMIT`, all in `src/state/reducer.test.ts`);
+`CLEAR_ALL` itself doesn't exist yet, so that AC is genuinely split between done and not done,
+not double-counted as both. One real gap was closed: `src/domain/expenses.test.ts` gained
+"separates adjacent months when they straddle a year boundary", covering `expensesInMonth` with
+expenses on either side of a Dec 31/Jan 1 boundary. The remaining two ACs — clear-then-rehydrate
+yielding empty state rather than seed data, and schema validation for corrupt/wrong-version
+input — plus `CLEAR_ALL` reducer coverage above, were deliberately deferred rather than built,
+since they depend on epic 4 (persistence, issues #20–#24), which hasn't landed: `src/storage/`
+is still empty, there is no `CLEAR_ALL` action, no seed data, no schema to validate against.
+That deferral is recorded as a comment on issue #25 and in
+`doc/superpowers/plans/2026-08-20-unit-test-domain-and-reducer.md`; #25 will need a follow-up
+once #20–#24 land rather than being fully closed by this branch.
 
 Besides the harness smoke test, `e2e/add-expense.spec.ts` (#26), `e2e/budget-limit-boundary.spec.ts`
 (#27), and `e2e/month-navigation.spec.ts` (#14) are written. All three deviate from the backlog's
