@@ -5,26 +5,34 @@ import { test, expect } from '@playwright/test'
 // render, and localStorage seeding via addInitScript. The actual add-expense
 // and budget-limit journeys are separate backlog stories (#26, #27).
 
-test('app loads and renders the expense log', async ({ page }) => {
-  await page.goto('/')
+test(
+  'app loads and renders the expense log',
+  { tag: '@issue-8' },
+  async ({ page }) => {
+    await page.goto('/')
 
-  await expect(page.getByRole('heading', { name: 'Expense Log' })).toBeVisible()
-  await expect(page.getByLabel('Date')).toBeVisible()
-  await expect(page.getByLabel('Amount')).toBeVisible()
-  await expect(page.getByLabel('Category')).toBeVisible()
-  await expect(page.getByRole('button', { name: 'Add expense' })).toBeVisible()
-})
+    await expect(page.getByRole('heading', { name: 'Expense Log' })).toBeVisible()
+    await expect(page.getByLabel('Date')).toBeVisible()
+    await expect(page.getByLabel('Amount')).toBeVisible()
+    await expect(page.getByLabel('Category')).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Add expense' })).toBeVisible()
+  },
+)
 
-test('localStorage can be seeded before page load via addInitScript', async ({ page }) => {
-  // There is no persistence layer yet (src/storage/ is empty, that's epic 4),
-  // so this seeds an arbitrary key rather than a real app fixture — it only
-  // demonstrates that addInitScript runs before the app's first script.
-  await page.addInitScript(() => {
-    window.localStorage.setItem('e2e-harness-check', 'seeded')
-  })
+test(
+  'localStorage can be seeded before page load via addInitScript',
+  { tag: '@issue-8' },
+  async ({ page }) => {
+    // There is no persistence layer yet (src/storage/ is empty, that's epic 4),
+    // so this seeds an arbitrary key rather than a real app fixture — it only
+    // demonstrates that addInitScript runs before the app's first script.
+    await page.addInitScript(() => {
+      window.localStorage.setItem('e2e-harness-check', 'seeded')
+    })
 
-  await page.goto('/')
+    await page.goto('/')
 
-  const seeded = await page.evaluate(() => window.localStorage.getItem('e2e-harness-check'))
-  expect(seeded).toBe('seeded')
-})
+    const seeded = await page.evaluate(() => window.localStorage.getItem('e2e-harness-check'))
+    expect(seeded).toBe('seeded')
+  },
+)
