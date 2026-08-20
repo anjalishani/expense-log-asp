@@ -42,6 +42,18 @@ describe('expensesInMonth', () => {
     expect(result).toEqual([rightYear])
   })
 
+  it('separates adjacent months when they straddle a year boundary', () => {
+    const decemberExpense = expense({ id: '1', date: '2025-12-31' })
+    const januaryExpense = expense({ id: '2', date: '2026-01-01' })
+
+    expect(expensesInMonth([decemberExpense, januaryExpense], '2025-12')).toEqual([
+      decemberExpense,
+    ])
+    expect(expensesInMonth([decemberExpense, januaryExpense], '2026-01')).toEqual([
+      januaryExpense,
+    ])
+  })
+
   it('returns an empty array when nothing matches', () => {
     const outOfMonth = expense({ date: '2026-07-15' })
 
